@@ -33,6 +33,8 @@ model User {
   debtPayments DebtPayment[]
   investments  Investment[]
   assets       Asset[]
+  budgets      Budget[]
+  savingGoals  SavingGoal[]
 }
 
 enum TxType {
@@ -52,6 +54,7 @@ model Category {
 
   user         User          @relation(fields: [userId], references: [id], onDelete: Cascade)
   transactions Transaction[]
+  budgets      Budget[]
 
   @@index([userId])
 }
@@ -179,6 +182,38 @@ model Asset {
   createdAt       DateTime  @default(now())
   updatedAt       DateTime  @updatedAt
   deletedAt       DateTime?
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
+}
+
+model Budget {
+  id         String   @id @default(cuid())
+  userId     String
+  categoryId String
+  amount     Decimal  @db.Decimal(14, 2)
+  createdAt  DateTime @default(now())
+  updatedAt  DateTime @updatedAt
+
+  user     User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  category Category @relation(fields: [categoryId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, categoryId])
+  @@index([userId])
+}
+
+model SavingGoal {
+  id            String    @id @default(cuid())
+  userId        String
+  name          String
+  targetAmount  Decimal   @db.Decimal(14, 2)
+  currentAmount Decimal   @db.Decimal(14, 2) @default(0)
+  deadline      DateTime?
+  note          String?
+  createdAt     DateTime  @default(now())
+  updatedAt     DateTime  @updatedAt
+  deletedAt     DateTime?
 
   user User @relation(fields: [userId], references: [id], onDelete: Cascade)
 
