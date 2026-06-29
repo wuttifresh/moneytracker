@@ -2,6 +2,7 @@ import type { Metadata, Viewport } from 'next';
 import { Noto_Sans_Thai, Inter } from 'next/font/google';
 import './globals.css';
 import { getActiveTheme } from '@/lib/theme';
+import { ServiceWorkerRegister } from '@/components/pwa/service-worker-register';
 
 const notoThai = Noto_Sans_Thai({
   subsets: ['thai', 'latin'],
@@ -18,10 +19,22 @@ const inter = Inter({
 export const metadata: Metadata = {
   title: 'MoneyPad — บันทึกรายรับรายจ่าย',
   description: 'แอปบันทึกรายรับ-รายจ่ายส่วนบุคคล',
+  manifest: '/manifest.webmanifest',
+  appleWebApp: {
+    capable: true,
+    statusBarStyle: 'default',
+    title: 'MoneyPad',
+  },
+  icons: {
+    icon: '/icon-192.png',
+    apple: '/apple-icon.png',
+  },
 };
 
 export const viewport: Viewport = {
   themeColor: '#0b0f1a',
+  width: 'device-width',
+  initialScale: 1,
 };
 
 export default async function RootLayout({
@@ -39,7 +52,10 @@ export default async function RootLayout({
       className={`${notoThai.variable} ${inter.variable}`}
       suppressHydrationWarning
     >
-      <body>{children}</body>
+      <body>
+        {children}
+        <ServiceWorkerRegister />
+      </body>
     </html>
   );
 }
