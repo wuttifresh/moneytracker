@@ -1,6 +1,6 @@
 // Prisma schema — MoneyPad Clone
 // Phase 1: NextAuth (Auth.js) models + auth-related user fields.
-// Domain models (Category, Transaction, ...) arrive from Phase 2.
+// Phase 2: Category / Transaction (income & expense tracking).
 
 generator client {
   provider = "prisma-client-js"
@@ -25,8 +25,50 @@ model User {
   createdAt      DateTime  @default(now())
   updatedAt      DateTime  @updatedAt
 
-  accounts Account[]
-  sessions Session[]
+  accounts     Account[]
+  sessions     Session[]
+  categories   Category[]
+  transactions Transaction[]
+}
+
+enum TxType {
+  income
+  expense
+}
+
+model Category {
+  id        String    @id @default(cuid())
+  userId    String
+  name      String
+  type      TxType
+  icon      String?
+  color     String?
+  createdAt DateTime  @default(now())
+  deletedAt DateTime?
+
+  user         User          @relation(fields: [userId], references: [id], onDelete: Cascade)
+  transactions Transaction[]
+
+  @@index([userId])
+}
+
+model Transaction {
+  id         String    @id @default(cuid())
+  userId     String
+  categoryId String
+  type       TxType
+  amount     Decimal   @db.Decimal(14, 2)
+  note       String?
+  date       DateTime
+  createdAt  DateTime  @default(now())
+  updatedAt  DateTime  @updatedAt
+  deletedAt  DateTime?
+
+  user     User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  category Category @relation(fields: [categoryId], references: [id])
+
+  @@index([userId, date])
+  @@index([categoryId])
 }
 
 model Account {
