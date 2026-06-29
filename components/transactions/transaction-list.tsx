@@ -5,6 +5,7 @@ import { useRouter } from 'next/navigation';
 import { Trash2, Inbox } from 'lucide-react';
 import { CategoryPill } from './category-pill';
 import { TransactionModal } from './transaction-modal';
+import { EmptyState } from '@/components/ui/empty-state';
 import { deleteTransaction } from '@/server/actions/transactions';
 import { formatTHB } from '@/lib/money';
 import { cn } from '@/lib/utils';
@@ -47,12 +48,7 @@ export function TransactionList({
   categories: CategoryDTO[];
 }) {
   if (transactions.length === 0) {
-    return (
-      <div className="flex flex-col items-center justify-center rounded-lg border border-dashed border-border bg-card py-14 text-center">
-        <Inbox className="mb-3 h-8 w-8 text-muted-foreground" />
-        <p className="text-sm text-muted-foreground">ยังไม่มีรายการในเดือนนี้</p>
-      </div>
-    );
+    return <EmptyState icon={Inbox} title="ยังไม่มีรายการในเดือนนี้" />;
   }
 
   return (
