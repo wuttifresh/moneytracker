@@ -17,6 +17,8 @@ export const DEFAULT_THEME: ThemeId = 'dark';
 
 export const THEME_COOKIE = 'theme';
 
-export function isThemeId(value: string | undefined | null): value is ThemeId {
-  return value != null && (THEME_IDS as readonly string[]).includes(value);
+export function isThemeId(value: unknown): value is ThemeId {
+  return (
+    typeof value === 'string' && (THEME_IDS as readonly string[]).includes(value)
+  );
 }

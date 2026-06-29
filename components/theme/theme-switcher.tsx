@@ -1,8 +1,9 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useTransition } from 'react';
 import { Check, Palette } from 'lucide-react';
 import { THEMES, THEME_COOKIE, type ThemeId } from '@/lib/themes';
+import { updateThemeAction } from '@/server/actions/auth';
 
 const ONE_YEAR = 60 * 60 * 24 * 365;
 
@@ -16,14 +17,27 @@ function applyTheme(theme: ThemeId) {
   }
 }
 
-export function ThemeSwitcher({ initialTheme }: { initialTheme: ThemeId }) {
+export function ThemeSwitcher({
+  initialTheme,
+  isLoggedIn = false,
+}: {
+  initialTheme: ThemeId;
+  isLoggedIn?: boolean;
+}) {
   const [theme, setTheme] = useState<ThemeId>(initialTheme);
   const [open, setOpen] = useState(false);
+  const [, startTransition] = useTransition();
 
   function select(next: ThemeId) {
     setTheme(next);
-    applyTheme(next);
+    applyTheme(next); // instant, client-side (also covers guests)
     setOpen(false);
+    if (isLoggedIn) {
+      // Persist to DB + JWT for the signed-in user (syncs across devices).
+      startTransition(() => {
+        void updateThemeAction(next);
+      });
+    }
   }
 
   return (

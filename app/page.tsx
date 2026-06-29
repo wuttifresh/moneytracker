@@ -1,13 +1,13 @@
-import { getServerTheme } from '@/lib/theme-cookie';
 import { AppShell } from '@/components/layout/app-shell';
 import { THEMES } from '@/lib/themes';
+import { getActiveTheme } from '@/lib/theme';
 
-export default function HomePage() {
-  const theme = getServerTheme();
+export default async function HomePage() {
+  const theme = await getActiveTheme();
   const current = THEMES.find((t) => t.id === theme);
 
   return (
-    <AppShell theme={theme} title="ภาพรวม">
+    <AppShell title="ภาพรวม">
       <div className="space-y-6">
         <section className="rounded-lg border border-border bg-card p-6 text-card-foreground">
           <h2 className="text-xl font-semibold">โครงเริ่มต้นพร้อมแล้ว 🎉</h2>
