@@ -1,0 +1,13 @@
+// Prisma schema — MoneyPad Clone
+// Models are introduced per phase (Phase 1: auth, Phase 2: transactions, ...).
+// Phase 0 wires up the datasource + generator only.
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider  = "postgresql"
+  url       = env("DATABASE_URL")
+  directUrl = env("DIRECT_URL")
+}
