@@ -32,6 +32,7 @@ model User {
   debts        Debt[]
   debtPayments DebtPayment[]
   investments  Investment[]
+  assets       Asset[]
 }
 
 enum TxType {
@@ -159,6 +160,25 @@ model Investment {
   createdAt    DateTime  @default(now())
   updatedAt    DateTime  @updatedAt
   deletedAt    DateTime?
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
+}
+
+model Asset {
+  id              String    @id @default(cuid())
+  userId          String
+  name            String
+  kind            String?
+  purchaseValue   Decimal   @db.Decimal(14, 2)
+  salvageValue    Decimal   @db.Decimal(14, 2) @default(0)
+  purchaseDate    DateTime
+  usefulLifeYears Int?
+  note            String?
+  createdAt       DateTime  @default(now())
+  updatedAt       DateTime  @updatedAt
+  deletedAt       DateTime?
 
   user User @relation(fields: [userId], references: [id], onDelete: Cascade)
 
