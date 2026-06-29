@@ -1,0 +1,45 @@
+import type { Metadata, Viewport } from 'next';
+import { Noto_Sans_Thai, Inter } from 'next/font/google';
+import './globals.css';
+import { getServerTheme } from '@/lib/theme-cookie';
+
+const notoThai = Noto_Sans_Thai({
+  subsets: ['thai', 'latin'],
+  variable: '--font-noto-thai',
+  display: 'swap',
+});
+
+const inter = Inter({
+  subsets: ['latin'],
+  variable: '--font-inter',
+  display: 'swap',
+});
+
+export const metadata: Metadata = {
+  title: 'MoneyPad — บันทึกรายรับรายจ่าย',
+  description: 'แอปบันทึกรายรับ-รายจ่ายส่วนบุคคล',
+};
+
+export const viewport: Viewport = {
+  themeColor: '#0b0f1a',
+};
+
+export default function RootLayout({
+  children,
+}: {
+  children: React.ReactNode;
+}) {
+  // Read theme on the server so <html data-theme> is correct before first paint.
+  const theme = getServerTheme();
+
+  return (
+    <html
+      lang="th"
+      data-theme={theme}
+      className={`${notoThai.variable} ${inter.variable}`}
+      suppressHydrationWarning
+    >
+      <body>{children}</body>
+    </html>
+  );
+}

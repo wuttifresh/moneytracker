@@ -1,0 +1,131 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+/* ──────────────────────────────────────────────────────────────────────────
+   Theming engine
+   Each theme overrides the same set of CSS variables. Tailwind colours map to
+   these vars (see tailwind.config.ts), so components stay theme-agnostic.
+   ────────────────────────────────────────────────────────────────────────── */
+
+:root {
+  --radius: 0.875rem;
+  --font-sans: var(--font-noto-thai), var(--font-inter), system-ui, sans-serif;
+}
+
+/* dark — มืด เท่ */
+[data-theme='dark'] {
+  --background: #0b0f1a;
+  --foreground: #e6e9f0;
+  --card: #131a2b;
+  --card-foreground: #e6e9f0;
+  --primary: #5b8cff;
+  --primary-foreground: #0b0f1a;
+  --secondary: #1c2540;
+  --secondary-foreground: #c3cae0;
+  --muted: #1a2236;
+  --muted-foreground: #8b94ad;
+  --accent: #7c5cff;
+  --accent-foreground: #ffffff;
+  --border: #232c45;
+  --ring: #5b8cff;
+  --income: #34d399;
+  --expense: #f87171;
+}
+
+/* light — สว่าง คลาสสิก */
+[data-theme='light'] {
+  --background: #f6f7fb;
+  --foreground: #1b2436;
+  --card: #ffffff;
+  --card-foreground: #1b2436;
+  --primary: #2563eb;
+  --primary-foreground: #ffffff;
+  --secondary: #eef2fb;
+  --secondary-foreground: #334155;
+  --muted: #eef1f7;
+  --muted-foreground: #64748b;
+  --accent: #7c3aed;
+  --accent-foreground: #ffffff;
+  --border: #e3e8f2;
+  --ring: #2563eb;
+  --income: #16a34a;
+  --expense: #dc2626;
+}
+
+/* cute — พาสเทล ชมพู */
+[data-theme='cute'] {
+  --background: #fff5f9;
+  --foreground: #5b2740;
+  --card: #ffffff;
+  --card-foreground: #5b2740;
+  --primary: #ec4899;
+  --primary-foreground: #ffffff;
+  --secondary: #ffe4f1;
+  --secondary-foreground: #9d3b6b;
+  --muted: #fdeaf3;
+  --muted-foreground: #b66e92;
+  --accent: #a78bfa;
+  --accent-foreground: #ffffff;
+  --border: #f9d4e6;
+  --ring: #ec4899;
+  --income: #2dd4bf;
+  --expense: #fb7185;
+}
+
+/* hitech — ดำ + นีออน */
+[data-theme='hitech'] {
+  --background: #05070a;
+  --foreground: #d6fff7;
+  --card: #0a1016;
+  --card-foreground: #d6fff7;
+  --primary: #22d3ee;
+  --primary-foreground: #05070a;
+  --secondary: #0e1822;
+  --secondary-foreground: #7fe8df;
+  --muted: #0d161e;
+  --muted-foreground: #5a8a8a;
+  --accent: #4ade80;
+  --accent-foreground: #05070a;
+  --border: #15303a;
+  --ring: #22d3ee;
+  --income: #4ade80;
+  --expense: #f43f5e;
+}
+
+/* soft-warm — Soft Warm Minimalist (beige/cream) */
+[data-theme='soft-warm'] {
+  --background: #f5efe6;
+  --foreground: #4a3f35;
+  --card: #fbf7f0;
+  --card-foreground: #4a3f35;
+  --primary: #c8a27a;
+  --primary-foreground: #2e2820;
+  --secondary: #ece2d3;
+  --secondary-foreground: #6b5d4d;
+  --muted: #ece4d6;
+  --muted-foreground: #9a8a76;
+  --accent: #a3b18a;
+  --accent-foreground: #2e2820;
+  --border: #e3d8c6;
+  --ring: #c8a27a;
+  --income: #7c9a6d;
+  --expense: #c97b6a;
+}
+
+@layer base {
+  * {
+    border-color: var(--border);
+  }
+
+  html {
+    color-scheme: light dark;
+  }
+
+  body {
+    background-color: var(--background);
+    color: var(--foreground);
+    font-family: var(--font-sans);
+    -webkit-font-smoothing: antialiased;
+  }
+}
