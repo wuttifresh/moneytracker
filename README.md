@@ -113,5 +113,7 @@ npm run db:studio    # Prisma Studio
 2. Import โปรเจกต์เข้า [Vercel](https://vercel.com)
 3. ใส่ environment variables ทั้งหมดจาก `.env` ใน Vercel Project Settings
    (ตั้ง `NEXTAUTH_URL` เป็น domain จริง)
-4. Build command/Output ใช้ค่า default ของ Next.js
+4. Build/Install command อ่านจาก `vercel.json` อยู่แล้ว — build รัน
+   `prisma generate && next build` จึงสร้าง Prisma client ให้อัตโนมัติทุกครั้ง
+   (ป้องกัน client เก่าค้างจาก cache ของ Vercel)
 5. เพิ่ม production redirect URI ใน Google OAuth ให้ตรงกับ domain ของ Vercel
