@@ -4,7 +4,7 @@ import { AuthDivider, AuthShell } from '@/components/auth/auth-shell';
 import { LoginForm } from '@/components/auth/login-form';
 import { GoogleButton } from '@/components/auth/google-button';
 
-export const metadata: Metadata = { title: 'เข้าสู่ระบบ — MoneyPad' };
+export const metadata: Metadata = { title: 'เข้าสู่ระบบ — MoneyTracker' };
 
 export default function LoginPage() {
   return (

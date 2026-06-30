@@ -1,4 +1,4 @@
-# MoneyPad
+# MoneyTracker
 
 แอปบันทึกการเงินส่วนบุคคล (personal finance tracker) แรงบันดาลใจจาก
 moneypadpro.com — responsive ทุกหน้าจอ, หลายธีม, ล็อกอินด้วย Google หรือ

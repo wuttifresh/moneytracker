@@ -44,7 +44,7 @@ export async function GET(req: Request): Promise<Response> {
   return new Response(csv, {
     headers: {
       'Content-Type': 'text/csv; charset=utf-8',
-      'Content-Disposition': `attachment; filename="moneypad-report-${year}.csv"`,
+      'Content-Disposition': `attachment; filename="moneytracker-report-${year}.csv"`,
     },
   });
 }

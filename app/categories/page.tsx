@@ -10,7 +10,7 @@ import {
   getCategories,
 } from '@/server/services/categories';
 
-export const metadata: Metadata = { title: 'จัดการหมวดหมู่ — MoneyPad' };
+export const metadata: Metadata = { title: 'จัดการหมวดหมู่ — MoneyTracker' };
 
 export default async function CategoriesPage() {
   const session = await auth();

@@ -1,4 +1,4 @@
-// Prisma schema — MoneyPad Clone
+// Prisma schema — MoneyTracker Clone
 // Phase 1: NextAuth (Auth.js) models + auth-related user fields.
 // Phase 2: Category / Transaction (income & expense tracking).
 

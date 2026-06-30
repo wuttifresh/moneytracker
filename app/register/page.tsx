@@ -4,7 +4,7 @@ import { AuthDivider, AuthShell } from '@/components/auth/auth-shell';
 import { RegisterForm } from '@/components/auth/register-form';
 import { GoogleButton } from '@/components/auth/google-button';
 
-export const metadata: Metadata = { title: 'สมัครสมาชิก — MoneyPad' };
+export const metadata: Metadata = { title: 'สมัครสมาชิก — MoneyTracker' };
 
 export default function RegisterPage() {
   return (

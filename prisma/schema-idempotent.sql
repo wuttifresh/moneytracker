@@ -1,4 +1,4 @@
--- MoneyPad — full database schema (idempotent)
+-- MoneyTracker — full database schema (idempotent)
 -- Safe to run on a NEW or EXISTING database, multiple times.
 -- Usage: paste into Supabase SQL Editor and Run (or psql -f).
 -- Keep in sync with prisma/schema.prisma after schema changes.
