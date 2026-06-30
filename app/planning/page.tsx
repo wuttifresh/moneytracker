@@ -3,7 +3,7 @@ import { AlertTriangle, Target, Wallet } from 'lucide-react';
 import { AppShell } from '@/components/layout/app-shell';
 import { BudgetManager } from '@/components/planning/budget-manager';
 import { GoalsManager } from '@/components/planning/goals-manager';
-import { auth } from '@/auth';
+import { getSession } from '@/lib/session';
 import { ensureDefaultCategories } from '@/server/services/categories';
 import { getBudgetOverview, getGoals } from '@/server/services/planning';
 import { formatTHB } from '@/lib/money';
@@ -11,7 +11,7 @@ import { formatTHB } from '@/lib/money';
 const monthName = new Intl.DateTimeFormat('th-TH', { month: 'long' });
 
 export default async function PlanningPage() {
-  const session = await auth();
+  const session = await getSession();
   if (!session?.user?.id) redirect('/login');
   const userId = session.user.id;
 

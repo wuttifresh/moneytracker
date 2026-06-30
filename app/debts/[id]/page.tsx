@@ -5,7 +5,7 @@ import { AppShell } from '@/components/layout/app-shell';
 import { DebtModal } from '@/components/debts/debt-modal';
 import { DeleteDebtButton } from '@/components/debts/delete-debt-button';
 import { ScheduleTable } from '@/components/debts/schedule-table';
-import { auth } from '@/auth';
+import { getSession } from '@/lib/session';
 import { getDebt } from '@/server/services/debts';
 import { buildSchedule } from '@/lib/amortization';
 import { formatTHB } from '@/lib/money';
@@ -15,7 +15,7 @@ export default async function DebtDetailPage({
 }: {
   params: { id: string };
 }) {
-  const session = await auth();
+  const session = await getSession();
   if (!session?.user?.id) redirect('/login');
 
   const debt = await getDebt(session.user.id, params.id);

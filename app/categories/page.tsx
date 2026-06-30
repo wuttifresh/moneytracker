@@ -4,7 +4,7 @@ import type { Metadata } from 'next';
 import { ArrowLeft } from 'lucide-react';
 import { AppShell } from '@/components/layout/app-shell';
 import { CategoryManager } from '@/components/categories/category-manager';
-import { auth } from '@/auth';
+import { getSession } from '@/lib/session';
 import {
   ensureDefaultCategories,
   getCategories,
@@ -13,7 +13,7 @@ import {
 export const metadata: Metadata = { title: 'จัดการหมวดหมู่ — MoneyTracker' };
 
 export default async function CategoriesPage() {
-  const session = await auth();
+  const session = await getSession();
   if (!session?.user?.id) redirect('/login');
   const userId = session.user.id;
 

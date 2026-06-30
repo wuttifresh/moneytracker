@@ -5,7 +5,7 @@ import { AppShell } from '@/components/layout/app-shell';
 import { MonthFilter } from '@/components/transactions/month-filter';
 import { TransactionModal } from '@/components/transactions/transaction-modal';
 import { TransactionList } from '@/components/transactions/transaction-list';
-import { auth } from '@/auth';
+import { getSession } from '@/lib/session';
 import {
   ensureDefaultCategories,
   getCategories,
@@ -25,7 +25,7 @@ export default async function TransactionsPage({
 }: {
   searchParams: SearchParams;
 }) {
-  const session = await auth();
+  const session = await getSession();
   if (!session?.user?.id) redirect('/login');
   const userId = session.user.id;
 

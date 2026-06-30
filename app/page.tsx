@@ -12,37 +12,23 @@ import { AppShell } from '@/components/layout/app-shell';
 import { TransactionModal } from '@/components/transactions/transaction-modal';
 import { TransactionList } from '@/components/transactions/transaction-list';
 import { ExpenseChart } from '@/components/transactions/expense-chart';
-import { auth } from '@/auth';
-import { ensureDefaultCategories, getCategories } from '@/server/services/categories';
-import { getDashboardData } from '@/server/services/transactions';
-import { getBudgetOverview } from '@/server/services/planning';
+import { getSession } from '@/lib/session';
+import { getDashboardView } from '@/server/services/dashboard';
 import { formatTHB } from '@/lib/money';
 
 const monthName = new Intl.DateTimeFormat('th-TH', { month: 'long' });
 
 export default async function DashboardPage() {
-  const session = await auth();
+  const session = await getSession();
   if (!session?.user?.id) redirect('/login');
-  const userId = session.user.id;
 
-  await ensureDefaultCategories(userId);
   const now = new Date();
   const year = now.getFullYear();
   const month = now.getMonth() + 1;
 
-  const [data, categories] = await Promise.all([
-    getDashboardData(userId, year, month),
-    getCategories(userId),
-  ]);
-
-  // The over-budget alert is optional — never let it crash the dashboard
-  // (e.g. if the planning tables haven't been migrated yet).
-  let overCount = 0;
-  try {
-    overCount = (await getBudgetOverview(userId, year, month)).overCount;
-  } catch {
-    overCount = 0;
-  }
+  // Single batched query (one round trip) for everything on this page.
+  const data = await getDashboardView(session.user.id, year, month);
+  const { categories, overBudgetCount: overCount } = data;
 
   const cards = [
     {

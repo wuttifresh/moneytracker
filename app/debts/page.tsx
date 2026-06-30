@@ -4,13 +4,13 @@ import { Landmark, TrendingDown, CalendarClock } from 'lucide-react';
 import { AppShell } from '@/components/layout/app-shell';
 import { DebtModal } from '@/components/debts/debt-modal';
 import { DeleteDebtButton } from '@/components/debts/delete-debt-button';
-import { auth } from '@/auth';
+import { getSession } from '@/lib/session';
 import { listDebts } from '@/server/services/debts';
 import { buildSchedule } from '@/lib/amortization';
 import { formatTHB } from '@/lib/money';
 
 export default async function DebtsPage() {
-  const session = await auth();
+  const session = await getSession();
   if (!session?.user?.id) redirect('/login');
 
   const debts = await listDebts(session.user.id);

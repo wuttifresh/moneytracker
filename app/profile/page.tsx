@@ -4,7 +4,7 @@ import { LogOut } from 'lucide-react';
 import { AppShell } from '@/components/layout/app-shell';
 import { ThemeSwitcher } from '@/components/theme/theme-switcher';
 import { ChangePasswordForm } from '@/components/auth/change-password-form';
-import { auth } from '@/auth';
+import { getSession } from '@/lib/session';
 import { prisma } from '@/lib/prisma';
 import { signOutAction } from '@/server/actions/auth';
 import { getActiveTheme } from '@/lib/theme';
@@ -15,7 +15,7 @@ export const metadata: Metadata = { title: 'โปรไฟล์ — MoneyTrack
 const dateFmt = new Intl.DateTimeFormat('th-TH', { dateStyle: 'long' });
 
 export default async function ProfilePage() {
-  const session = await auth();
+  const session = await getSession();
   if (!session?.user?.id) redirect('/login');
 
   const [user, theme] = await Promise.all([
