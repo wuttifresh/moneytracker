@@ -1,6 +1,13 @@
 import { redirect } from 'next/navigation';
 import Link from 'next/link';
-import { TrendingUp, TrendingDown, Wallet, CalendarDays, Crown } from 'lucide-react';
+import {
+  TrendingUp,
+  TrendingDown,
+  Wallet,
+  CalendarDays,
+  Crown,
+  AlertTriangle,
+} from 'lucide-react';
 import { AppShell } from '@/components/layout/app-shell';
 import { TransactionModal } from '@/components/transactions/transaction-modal';
 import { TransactionList } from '@/components/transactions/transaction-list';
@@ -8,6 +15,7 @@ import { ExpenseChart } from '@/components/transactions/expense-chart';
 import { auth } from '@/auth';
 import { ensureDefaultCategories, getCategories } from '@/server/services/categories';
 import { getDashboardData } from '@/server/services/transactions';
+import { getBudgetOverview } from '@/server/services/planning';
 import { formatTHB } from '@/lib/money';
 
 const monthName = new Intl.DateTimeFormat('th-TH', { month: 'long' });
@@ -22,9 +30,10 @@ export default async function DashboardPage() {
   const year = now.getFullYear();
   const month = now.getMonth() + 1;
 
-  const [data, categories] = await Promise.all([
+  const [data, categories, budget] = await Promise.all([
     getDashboardData(userId, year, month),
     getCategories(userId),
+    getBudgetOverview(userId, year, month),
   ]);
 
   const cards = [
@@ -57,6 +66,19 @@ export default async function DashboardPage() {
           </p>
           <TransactionModal categories={categories} />
         </div>
+
+        {budget.overCount > 0 && (
+          <Link
+            href="/planning"
+            className="flex items-center gap-2 rounded-lg border border-expense/40 bg-expense/10 px-4 py-3 text-sm text-expense transition-colors hover:bg-expense/20"
+          >
+            <AlertTriangle className="h-5 w-5 shrink-0" />
+            <span className="flex-1">
+              มี <b>{budget.overCount}</b> หมวดที่ใช้จ่ายเกินงบเดือนนี้
+            </span>
+            <span className="font-medium">ดูแผน →</span>
+          </Link>
+        )}
 
         <section className="grid gap-4 sm:grid-cols-3">
           {cards.map((c) => {
