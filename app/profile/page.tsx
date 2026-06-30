@@ -6,6 +6,7 @@ import { ThemeSwitcher } from '@/components/theme/theme-switcher';
 import { ChangePasswordForm } from '@/components/auth/change-password-form';
 import { ProfileHeader } from '@/components/profile/profile-header';
 import { NotificationToggle } from '@/components/push/notification-toggle';
+import { ReminderSettings } from '@/components/push/reminder-settings';
 import { getSession } from '@/lib/session';
 import { prisma } from '@/lib/prisma';
 import { signOutAction } from '@/server/actions/auth';
@@ -27,6 +28,9 @@ export default async function ProfilePage() {
         image: true,
         createdAt: true,
         hashedPassword: true,
+        debtReminderEnabled: true,
+        debtReminderLeadDays: true,
+        debtReminderHour: true,
       },
     }),
     getActiveTheme(),
@@ -71,6 +75,13 @@ export default async function ProfilePage() {
             รับการแจ้งเตือนชำระหนี้เมื่อใกล้ถึงวันครบกำหนด แม้ปิดแอปอยู่
           </p>
           <NotificationToggle />
+          <ReminderSettings
+            initial={{
+              enabled: user.debtReminderEnabled,
+              leadDays: user.debtReminderLeadDays,
+              hour: user.debtReminderHour,
+            }}
+          />
         </section>
 
         {/* Password */}

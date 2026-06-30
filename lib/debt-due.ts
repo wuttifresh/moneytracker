@@ -41,6 +41,32 @@ export function daysUntil(date: Date, from: Date = new Date()): number {
   return Math.round((b - a) / 86_400_000);
 }
 
+/**
+ * Timezone-safe days-until-due, computed purely from a local calendar date
+ * (year / month 1-12 / day). Used by the reminder cron so each user's "today"
+ * is their own local date regardless of the (UTC) server clock.
+ */
+export function daysUntilDueDay(
+  dueDay: number,
+  y: number,
+  m: number,
+  d: number,
+): number {
+  const dim = (yy: number, mm: number) =>
+    new Date(Date.UTC(yy, mm, 0)).getUTCDate(); // last day of month mm (1-12)
+  const todayUTC = Date.UTC(y, m - 1, d);
+  const thisDay = Math.min(dueDay, dim(y, m));
+  let dueUTC: number;
+  if (thisDay >= d) {
+    dueUTC = Date.UTC(y, m - 1, thisDay);
+  } else {
+    const ny = m === 12 ? y + 1 : y;
+    const nm = m === 12 ? 1 : m + 1;
+    dueUTC = Date.UTC(ny, nm - 1, Math.min(dueDay, dim(ny, nm)));
+  }
+  return Math.round((dueUTC - todayUTC) / 86_400_000);
+}
+
 /** ระยะเวลาที่ถือว่า "ใกล้ครบกำหนด" (วัน) */
 export const DUE_SOON_DAYS = 7;
 

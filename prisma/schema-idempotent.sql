@@ -337,3 +337,9 @@ CREATE INDEX IF NOT EXISTS "PushSubscription_userId_idx" ON "PushSubscription"("
 DO $$ BEGIN
   ALTER TABLE "PushSubscription" ADD CONSTRAINT "PushSubscription_userId_fkey" FOREIGN KEY ("userId") REFERENCES "User"("id") ON DELETE CASCADE ON UPDATE CASCADE;
 EXCEPTION WHEN duplicate_object THEN null; END $$;
+
+-- AlterTable: per-user debt reminder preferences
+ALTER TABLE "User" ADD COLUMN IF NOT EXISTS "debtReminderEnabled" BOOLEAN NOT NULL DEFAULT true;
+ALTER TABLE "User" ADD COLUMN IF NOT EXISTS "debtReminderLeadDays" INTEGER[] NOT NULL DEFAULT ARRAY[3, 1, 0];
+ALTER TABLE "User" ADD COLUMN IF NOT EXISTS "debtReminderHour" INTEGER NOT NULL DEFAULT 8;
+ALTER TABLE "User" ADD COLUMN IF NOT EXISTS "reminderTzOffset" INTEGER NOT NULL DEFAULT 420;

@@ -22,6 +22,11 @@ model User {
   hashedPassword String?
   // Persisted UI theme, synced from the theme switcher when signed in.
   theme          String    @default("dark")
+  // Debt due-date reminder preferences (push notifications).
+  debtReminderEnabled  Boolean @default(true)
+  debtReminderLeadDays Int[]   @default([3, 1, 0]) // notify N days before due
+  debtReminderHour     Int     @default(8) // local hour 0-23 to send at
+  reminderTzOffset     Int     @default(420) // minutes to add to UTC for local time
   createdAt      DateTime  @default(now())
   updatedAt      DateTime  @updatedAt
 
