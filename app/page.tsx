@@ -12,6 +12,7 @@ import { AppShell } from '@/components/layout/app-shell';
 import { TransactionModal } from '@/components/transactions/transaction-modal';
 import { TransactionList } from '@/components/transactions/transaction-list';
 import { ExpenseChart } from '@/components/transactions/expense-chart';
+import { DueReminder } from '@/components/debts/due-reminder';
 import { getSession } from '@/lib/session';
 import { getDashboardView } from '@/server/services/dashboard';
 import { formatTHB } from '@/lib/money';
@@ -73,6 +74,8 @@ export default async function DashboardPage() {
             <span className="font-medium">ดูแผน →</span>
           </Link>
         )}
+
+        <DueReminder dues={data.upcomingDues} />
 
         <section className="grid gap-4 sm:grid-cols-3">
           {cards.map((c) => {

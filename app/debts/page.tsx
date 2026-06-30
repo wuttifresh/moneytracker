@@ -4,9 +4,17 @@ import { Landmark, TrendingDown, CalendarClock } from 'lucide-react';
 import { AppShell } from '@/components/layout/app-shell';
 import { DebtModal } from '@/components/debts/debt-modal';
 import { DeleteDebtButton } from '@/components/debts/delete-debt-button';
+import { DueReminder } from '@/components/debts/due-reminder';
 import { getSession } from '@/lib/session';
 import { listDebts } from '@/server/services/debts';
+import type { UpcomingDue } from '@/server/services/dashboard';
 import { buildSchedule } from '@/lib/amortization';
+import {
+  nextDueDate,
+  daysUntil,
+  dueRelativeText,
+  DUE_SOON_DAYS,
+} from '@/lib/debt-due';
 import { formatTHB } from '@/lib/money';
 
 export default async function DebtsPage() {
@@ -14,6 +22,7 @@ export default async function DebtsPage() {
   if (!session?.user?.id) redirect('/login');
 
   const debts = await listDebts(session.user.id);
+  const now = new Date();
 
   const computed = debts.map((d) => {
     const schedule = buildSchedule(
@@ -21,8 +30,27 @@ export default async function DebtsPage() {
       Number(d.annualRate),
       d.termMonths,
     );
-    return { debt: d, schedule };
+    const isPaidOff = d.paidCount >= d.termMonths;
+    const due =
+      d.dueDay != null && !isPaidOff ? nextDueDate(d.dueDay, now) : null;
+    return {
+      debt: d,
+      schedule,
+      due,
+      dueIn: due ? daysUntil(due, now) : null,
+    };
   });
+
+  const upcomingDues: UpcomingDue[] = computed
+    .filter((c) => c.due != null && (c.dueIn as number) <= DUE_SOON_DAYS)
+    .sort((a, b) => (a.dueIn as number) - (b.dueIn as number))
+    .map((c) => ({
+      id: c.debt.id,
+      name: c.debt.name,
+      dueDate: (c.due as Date).toISOString(),
+      daysUntil: c.dueIn as number,
+      minPayment: c.debt.minPayment,
+    }));
 
   const totalPrincipal = computed.reduce(
     (s, c) => s + Number(c.debt.principal),
@@ -49,6 +77,8 @@ export default async function DebtsPage() {
           </p>
           <DebtModal />
         </div>
+
+        <DueReminder dues={upcomingDues} />
 
         <section className="grid gap-4 sm:grid-cols-3">
           {cards.map((c) => {
@@ -79,19 +109,27 @@ export default async function DebtsPage() {
           </div>
         ) : (
           <section className="grid gap-4 md:grid-cols-2">
-            {computed.map(({ debt, schedule }) => (
+            {computed.map(({ debt, schedule, dueIn }) => (
               <div
                 key={debt.id}
                 className="rounded-lg border border-border bg-card p-5"
               >
                 <div className="flex items-start justify-between gap-2">
                   <div className="min-w-0">
-                    <Link
-                      href={`/debts/${debt.id}`}
-                      className="font-semibold hover:underline"
-                    >
-                      {debt.name}
-                    </Link>
+                    <div className="flex flex-wrap items-center gap-2">
+                      <Link
+                        href={`/debts/${debt.id}`}
+                        className="font-semibold hover:underline"
+                      >
+                        {debt.name}
+                      </Link>
+                      {dueIn != null && dueIn <= DUE_SOON_DAYS && (
+                        <span className="inline-flex items-center gap-1 rounded-full border border-amber-500/40 bg-amber-500/10 px-2 py-0.5 text-xs font-medium text-amber-600 dark:text-amber-400">
+                          <CalendarClock className="h-3 w-3" />
+                          {dueRelativeText(dueIn)}
+                        </span>
+                      )}
+                    </div>
                     {(debt.debtType || debt.lender) && (
                       <p className="mt-0.5 truncate text-xs text-muted-foreground">
                         {[debt.debtType, debt.lender]
@@ -130,6 +168,14 @@ export default async function DebtsPage() {
                   <dd className="text-right tabular-nums">
                     {debt.paidCount}/{debt.termMonths} งวด
                   </dd>
+                  {debt.dueDay != null && (
+                    <>
+                      <dt className="text-muted-foreground">วันครบกำหนด</dt>
+                      <dd className="text-right tabular-nums">
+                        ทุกวันที่ {debt.dueDay}
+                      </dd>
+                    </>
+                  )}
                 </dl>
                 <Link
                   href={`/debts/${debt.id}`}
