@@ -4,7 +4,7 @@ import { AppShell } from '@/components/layout/app-shell';
 import { DonutChart } from '@/components/charts/donut-chart';
 import { InvestmentModal } from '@/components/investments/investment-modal';
 import { DeleteInvestmentButton } from '@/components/investments/delete-investment-button';
-import { auth } from '@/auth';
+import { getSession } from '@/lib/session';
 import { getPortfolio } from '@/server/services/investments';
 import { formatTHB } from '@/lib/money';
 import { cn } from '@/lib/utils';
@@ -29,7 +29,7 @@ function withSign(n: number) {
 }
 
 export default async function InvestmentsPage() {
-  const session = await auth();
+  const session = await getSession();
   if (!session?.user?.id) redirect('/login');
 
   const portfolio = await getPortfolio(session.user.id);

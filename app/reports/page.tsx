@@ -4,7 +4,7 @@ import { AppShell } from '@/components/layout/app-shell';
 import { YearSelect } from '@/components/reports/year-select';
 import { TrendChart } from '@/components/reports/trend-chart';
 import { DonutChart } from '@/components/charts/donut-chart';
-import { auth } from '@/auth';
+import { getSession } from '@/lib/session';
 import { getYearlyReport } from '@/server/services/reports';
 import { formatTHB } from '@/lib/money';
 import { cn } from '@/lib/utils';
@@ -14,7 +14,7 @@ export default async function ReportsPage({
 }: {
   searchParams: { year?: string };
 }) {
-  const session = await auth();
+  const session = await getSession();
   if (!session?.user?.id) redirect('/login');
 
   const year = Number(searchParams.year) || new Date().getFullYear();

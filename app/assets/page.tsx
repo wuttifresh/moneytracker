@@ -4,7 +4,7 @@ import { AppShell } from '@/components/layout/app-shell';
 import { DonutChart } from '@/components/charts/donut-chart';
 import { AssetModal } from '@/components/assets/asset-modal';
 import { DeleteAssetButton } from '@/components/assets/delete-asset-button';
-import { auth } from '@/auth';
+import { getSession } from '@/lib/session';
 import { listAssets } from '@/server/services/assets';
 import { formatTHB } from '@/lib/money';
 
@@ -26,7 +26,7 @@ const dateFmt = new Intl.DateTimeFormat('th-TH', {
 });
 
 export default async function AssetsPage() {
-  const session = await auth();
+  const session = await getSession();
   if (!session?.user?.id) redirect('/login');
 
   const { assets, totalPurchase, totalCurrent, totalDepreciation } =

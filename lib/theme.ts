@@ -1,4 +1,4 @@
-import { auth } from '@/auth';
+import { getSession } from './session';
 import { getServerTheme } from './theme-cookie';
 import { isThemeId, type ThemeId } from './themes';
 
@@ -7,7 +7,7 @@ import { isThemeId, type ThemeId } from './themes';
  * (authoritative across devices); guests fall back to the cookie. No DB hit.
  */
 export async function getActiveTheme(): Promise<ThemeId> {
-  const session = await auth();
+  const session = await getSession();
   const theme = session?.user?.theme;
   if (isThemeId(theme)) return theme;
   return getServerTheme();

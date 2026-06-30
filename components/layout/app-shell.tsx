@@ -5,7 +5,7 @@ import { Sidebar } from './sidebar';
 import { BottomNav } from './bottom-nav';
 import { ThemeSwitcher } from '@/components/theme/theme-switcher';
 import { InstallButton } from '@/components/pwa/install-button';
-import { auth } from '@/auth';
+import { getSession } from '@/lib/session';
 import { getActiveTheme } from '@/lib/theme';
 
 type AppShellProps = {
@@ -15,7 +15,7 @@ type AppShellProps = {
 
 /** Responsive app frame: sidebar (md+) + bottom nav (mobile) + top bar. */
 export async function AppShell({ children, title }: AppShellProps) {
-  const [session, theme] = await Promise.all([auth(), getActiveTheme()]);
+  const [session, theme] = await Promise.all([getSession(), getActiveTheme()]);
   const user = session?.user ?? null;
 
   return (
