@@ -3,6 +3,7 @@ import { Download, TrendingUp, TrendingDown, Wallet } from 'lucide-react';
 import { AppShell } from '@/components/layout/app-shell';
 import { YearSelect } from '@/components/reports/year-select';
 import { TrendChart } from '@/components/reports/trend-chart';
+import { ImportExpenses } from '@/components/reports/import-expenses';
 import { DonutChart } from '@/components/charts/donut-chart';
 import { getSession } from '@/lib/session';
 import { getYearlyReport } from '@/server/services/reports';
@@ -109,6 +110,8 @@ export default async function ReportsPage({
             </ul>
           </div>
         </section>
+
+        <ImportExpenses />
       </div>
     </AppShell>
   );
