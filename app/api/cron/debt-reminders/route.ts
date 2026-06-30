@@ -1,12 +1,9 @@
 import { prisma } from '@/lib/prisma';
 import { isPushConfigured, sendToUser } from '@/lib/push/web-push';
-import { nextDueDate, daysUntil, dueRelativeText } from '@/lib/debt-due';
+import { daysUntilDueDay, dueRelativeText } from '@/lib/debt-due';
 import { formatTHB } from '@/lib/money';
 
 export const runtime = 'nodejs';
-
-// Notify 3 days before, 1 day before, and on the due day (avoids daily spam).
-const NOTIFY_OFFSETS = new Set([3, 1, 0]);
 
 function authorized(req: Request): boolean {
   const secret = process.env.CRON_SECRET;
@@ -15,24 +12,44 @@ function authorized(req: Request): boolean {
   return new URL(req.url).searchParams.get('secret') === secret;
 }
 
+/**
+ * Runs hourly. For each subscribed user whose chosen local hour matches now,
+ * sends a push for debts whose due date is within the user's chosen lead days.
+ * Each user's "today" is computed in their own timezone offset.
+ */
 export async function GET(req: Request): Promise<Response> {
   if (!authorized(req)) return new Response('Unauthorized', { status: 401 });
   if (!isPushConfigured()) {
     return Response.json({ ok: false, error: 'push not configured' }, { status: 503 });
   }
 
-  const subscribers = await prisma.pushSubscription.findMany({
-    select: { userId: true },
-    distinct: ['userId'],
+  const users = await prisma.user.findMany({
+    where: { debtReminderEnabled: true, pushSubscriptions: { some: {} } },
+    select: {
+      id: true,
+      debtReminderLeadDays: true,
+      debtReminderHour: true,
+      reminderTzOffset: true,
+    },
   });
 
-  const now = new Date();
+  const nowMs = Date.now();
   let usersNotified = 0;
   let pushesSent = 0;
 
-  for (const { userId } of subscribers) {
+  for (const u of users) {
+    const local = new Date(nowMs + u.reminderTzOffset * 60_000);
+    if (local.getUTCHours() !== u.debtReminderHour) continue; // not their hour
+
+    const offsets = new Set(u.debtReminderLeadDays);
+    if (offsets.size === 0) continue;
+
+    const ly = local.getUTCFullYear();
+    const lm = local.getUTCMonth() + 1;
+    const ld = local.getUTCDate();
+
     const debts = await prisma.debt.findMany({
-      where: { userId, deletedAt: null, dueDay: { not: null } },
+      where: { userId: u.id, deletedAt: null, dueDay: { not: null } },
       select: {
         name: true,
         dueDay: true,
@@ -46,14 +63,15 @@ export async function GET(req: Request): Promise<Response> {
       .filter((d) => d.dueDay != null && d._count.payments < d.termMonths)
       .map((d) => ({
         name: d.name,
-        days: daysUntil(nextDueDate(d.dueDay as number, now), now),
+        days: daysUntilDueDay(d.dueDay as number, ly, lm, ld),
         min: d.minPayment ? d.minPayment.toString() : null,
       }))
-      .filter((d) => NOTIFY_OFFSETS.has(d.days))
+      .filter((d) => offsets.has(d.days))
       .sort((a, b) => a.days - b.days);
 
     const first = due[0];
     if (!first) continue;
+
     const body =
       due.length === 1
         ? `${first.name} ${dueRelativeText(first.days)}${
@@ -63,7 +81,7 @@ export async function GET(req: Request): Promise<Response> {
             first.days,
           )}`;
 
-    const sent = await sendToUser(userId, {
+    const sent = await sendToUser(u.id, {
       title: 'เตือนชำระหนี้',
       body,
       url: '/debts',
