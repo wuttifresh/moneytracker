@@ -4,6 +4,7 @@ import { LogOut } from 'lucide-react';
 import { AppShell } from '@/components/layout/app-shell';
 import { ThemeSwitcher } from '@/components/theme/theme-switcher';
 import { ChangePasswordForm } from '@/components/auth/change-password-form';
+import { ProfileHeader } from '@/components/profile/profile-header';
 import { getSession } from '@/lib/session';
 import { prisma } from '@/lib/prisma';
 import { signOutAction } from '@/server/actions/auth';
@@ -11,8 +12,6 @@ import { getActiveTheme } from '@/lib/theme';
 import { THEMES } from '@/lib/themes';
 
 export const metadata: Metadata = { title: 'โปรไฟล์ — MoneyTracker' };
-
-const dateFmt = new Intl.DateTimeFormat('th-TH', { dateStyle: 'long' });
 
 export default async function ProfilePage() {
   const session = await getSession();
@@ -24,6 +23,7 @@ export default async function ProfilePage() {
       select: {
         name: true,
         email: true,
+        image: true,
         createdAt: true,
         hashedPassword: true,
       },
@@ -38,30 +38,13 @@ export default async function ProfilePage() {
   return (
     <AppShell title="โปรไฟล์">
       <div className="mx-auto max-w-2xl space-y-6">
-        {/* Account info */}
-        <section className="rounded-lg border border-border bg-card p-6">
-          <h2 className="text-lg font-semibold">ข้อมูลบัญชี</h2>
-          <dl className="mt-4 grid gap-3 text-sm sm:grid-cols-2">
-            <div>
-              <dt className="text-muted-foreground">ชื่อ</dt>
-              <dd className="font-medium">{user.name ?? '—'}</dd>
-            </div>
-            <div>
-              <dt className="text-muted-foreground">อีเมล</dt>
-              <dd className="font-medium">{user.email ?? '—'}</dd>
-            </div>
-            <div>
-              <dt className="text-muted-foreground">สมัครเมื่อ</dt>
-              <dd className="font-medium">{dateFmt.format(user.createdAt)}</dd>
-            </div>
-            <div>
-              <dt className="text-muted-foreground">วิธีเข้าสู่ระบบ</dt>
-              <dd className="font-medium">
-                {hasPassword ? 'อีเมล / รหัสผ่าน' : 'Google'}
-              </dd>
-            </div>
-          </dl>
-        </section>
+        <ProfileHeader
+          name={user.name}
+          email={user.email}
+          image={user.image}
+          createdAt={user.createdAt}
+          hasPassword={hasPassword}
+        />
 
         {/* Theme */}
         <section className="rounded-lg border border-border bg-card p-6">
