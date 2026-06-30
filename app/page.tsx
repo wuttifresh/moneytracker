@@ -30,11 +30,19 @@ export default async function DashboardPage() {
   const year = now.getFullYear();
   const month = now.getMonth() + 1;
 
-  const [data, categories, budget] = await Promise.all([
+  const [data, categories] = await Promise.all([
     getDashboardData(userId, year, month),
     getCategories(userId),
-    getBudgetOverview(userId, year, month),
   ]);
+
+  // The over-budget alert is optional — never let it crash the dashboard
+  // (e.g. if the planning tables haven't been migrated yet).
+  let overCount = 0;
+  try {
+    overCount = (await getBudgetOverview(userId, year, month)).overCount;
+  } catch {
+    overCount = 0;
+  }
 
   const cards = [
     {
@@ -67,14 +75,14 @@ export default async function DashboardPage() {
           <TransactionModal categories={categories} />
         </div>
 
-        {budget.overCount > 0 && (
+        {overCount > 0 && (
           <Link
             href="/planning"
             className="flex items-center gap-2 rounded-lg border border-expense/40 bg-expense/10 px-4 py-3 text-sm text-expense transition-colors hover:bg-expense/20"
           >
             <AlertTriangle className="h-5 w-5 shrink-0" />
             <span className="flex-1">
-              มี <b>{budget.overCount}</b> หมวดที่ใช้จ่ายเกินงบเดือนนี้
+              มี <b>{overCount}</b> หมวดที่ใช้จ่ายเกินงบเดือนนี้
             </span>
             <span className="font-medium">ดูแผน →</span>
           </Link>
