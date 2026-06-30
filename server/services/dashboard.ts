@@ -5,6 +5,15 @@ import {
   getCategories,
   type CategoryDTO,
 } from './categories';
+import { nextDueDate, daysUntil, DUE_SOON_DAYS } from '@/lib/debt-due';
+
+export type UpcomingDue = {
+  id: string;
+  name: string;
+  dueDate: string;
+  daysUntil: number;
+  minPayment: string | null;
+};
 
 export type DashboardView = {
   income: number;
@@ -16,6 +25,16 @@ export type DashboardView = {
   recent: TransactionDTO[];
   categories: CategoryDTO[];
   overBudgetCount: number;
+  upcomingDues: UpcomingDue[];
+};
+
+type DebtDueRow = {
+  id: string;
+  name: string;
+  dueDay: number | null;
+  minPayment: { toString(): string } | null;
+  termMonths: number;
+  _count: { payments: number };
 };
 
 /**
@@ -32,8 +51,15 @@ export async function getDashboardView(
   const { start, end } = monthRange(year, month);
   const baseWhere = { userId, deletedAt: null, date: { gte: start, lt: end } };
 
-  const [incomeAgg, expenseAgg, grouped, recentRows, categoriesRaw, budgets] =
-    await Promise.all([
+  const [
+    incomeAgg,
+    expenseAgg,
+    grouped,
+    recentRows,
+    categoriesRaw,
+    budgets,
+    debtsDue,
+  ] = await Promise.all([
       prisma.transaction.aggregate({
         _sum: { amount: true },
         where: { ...baseWhere, type: 'income' },
@@ -64,6 +90,20 @@ export async function getDashboardView(
       prisma.budget
         .findMany({ where: { userId } })
         .catch(() => [] as { categoryId: string; amount: { toNumber(): number } }[]),
+      // Resilient: dueDay/minPayment are recent columns — tolerate pre-migration.
+      prisma.debt
+        .findMany({
+          where: { userId, deletedAt: null, dueDay: { not: null } },
+          select: {
+            id: true,
+            name: true,
+            dueDay: true,
+            minPayment: true,
+            termMonths: true,
+            _count: { select: { payments: true } },
+          },
+        })
+        .catch(() => [] as DebtDueRow[]),
     ]);
 
   // First-ever load: seed default categories, then use them (rare path).
@@ -101,6 +141,23 @@ export async function getDashboardView(
   }
 
   const now = new Date();
+
+  // Debts approaching their monthly due day (skip fully-paid debts).
+  const upcomingDues: UpcomingDue[] = debtsDue
+    .filter((d) => d.dueDay != null && d._count.payments < d.termMonths)
+    .map((d) => {
+      const due = nextDueDate(d.dueDay as number, now);
+      return {
+        id: d.id,
+        name: d.name,
+        dueDate: due.toISOString(),
+        daysUntil: daysUntil(due, now),
+        minPayment: d.minPayment ? d.minPayment.toString() : null,
+      };
+    })
+    .filter((d) => d.daysUntil <= DUE_SOON_DAYS)
+    .sort((a, b) => a.daysUntil - b.daysUntil);
+
   const isCurrentMonth =
     now.getFullYear() === year && now.getMonth() === month - 1;
   const daysForAvg = isCurrentMonth
@@ -126,5 +183,6 @@ export async function getDashboardView(
     })),
     categories,
     overBudgetCount,
+    upcomingDues,
   };
 }
