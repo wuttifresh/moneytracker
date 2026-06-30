@@ -3,23 +3,37 @@ import { prisma } from '@/lib/prisma';
 export type DebtDTO = {
   id: string;
   name: string;
+  debtType: string | null;
+  lender: string | null;
   principal: string;
+  balance: string | null;
   annualRate: string;
+  minPayment: string | null;
+  dueDay: number | null;
   termMonths: number;
   startDate: string;
+  endDate: string | null;
   note: string | null;
 };
 
 export type DebtWithProgress = DebtDTO & { paidCount: number };
 export type DebtDetail = DebtDTO & { paidInstallments: number[] };
 
+type Dec = { toString(): string };
+
 type DebtRow = {
   id: string;
   name: string;
-  principal: { toString(): string };
-  annualRate: { toString(): string };
+  debtType: string | null;
+  lender: string | null;
+  principal: Dec;
+  balance: Dec | null;
+  annualRate: Dec;
+  minPayment: Dec | null;
+  dueDay: number | null;
   termMonths: number;
   startDate: Date;
+  endDate: Date | null;
   note: string | null;
 };
 
@@ -27,10 +41,16 @@ function toDTO(d: DebtRow): DebtDTO {
   return {
     id: d.id,
     name: d.name,
+    debtType: d.debtType,
+    lender: d.lender,
     principal: d.principal.toString(),
+    balance: d.balance ? d.balance.toString() : null,
     annualRate: d.annualRate.toString(),
+    minPayment: d.minPayment ? d.minPayment.toString() : null,
+    dueDay: d.dueDay,
     termMonths: d.termMonths,
     startDate: d.startDate.toISOString(),
+    endDate: d.endDate ? d.endDate.toISOString() : null,
     note: d.note,
   };
 }

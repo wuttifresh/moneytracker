@@ -85,22 +85,39 @@ export default async function DebtsPage() {
                 className="rounded-lg border border-border bg-card p-5"
               >
                 <div className="flex items-start justify-between gap-2">
-                  <Link
-                    href={`/debts/${debt.id}`}
-                    className="font-semibold hover:underline"
-                  >
-                    {debt.name}
-                  </Link>
+                  <div className="min-w-0">
+                    <Link
+                      href={`/debts/${debt.id}`}
+                      className="font-semibold hover:underline"
+                    >
+                      {debt.name}
+                    </Link>
+                    {(debt.debtType || debt.lender) && (
+                      <p className="mt-0.5 truncate text-xs text-muted-foreground">
+                        {[debt.debtType, debt.lender]
+                          .filter(Boolean)
+                          .join(' · ')}
+                      </p>
+                    )}
+                  </div>
                   <div className="flex items-center">
                     <DebtModal debt={debt} />
                     <DeleteDebtButton id={debt.id} />
                   </div>
                 </div>
                 <dl className="mt-3 grid grid-cols-2 gap-y-1.5 text-sm">
-                  <dt className="text-muted-foreground">ยอดต้น</dt>
+                  <dt className="text-muted-foreground">ยอดเริ่มต้น</dt>
                   <dd className="text-right tabular-nums">
                     {formatTHB(debt.principal)}
                   </dd>
+                  {debt.balance != null && (
+                    <>
+                      <dt className="text-muted-foreground">ยอดคงเหลือ</dt>
+                      <dd className="text-right tabular-nums">
+                        {formatTHB(debt.balance)}
+                      </dd>
+                    </>
+                  )}
                   <dt className="text-muted-foreground">ดอกเบี้ย</dt>
                   <dd className="text-right tabular-nums">
                     {debt.annualRate}%/ปี

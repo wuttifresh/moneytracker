@@ -15,12 +15,36 @@ async function requireUserId(): Promise<string | null> {
 function parse(formData: FormData) {
   return debtSchema.safeParse({
     name: formData.get('name'),
+    debtType: formData.get('debtType') ?? '',
+    lender: formData.get('lender') ?? '',
     principal: formData.get('principal'),
+    balance: formData.get('balance') ?? '',
     annualRate: formData.get('annualRate'),
+    minPayment: formData.get('minPayment') ?? '',
+    dueDay: formData.get('dueDay') ?? '',
     termMonths: formData.get('termMonths'),
     startDate: formData.get('startDate'),
+    endDate: formData.get('endDate') ?? '',
     note: formData.get('note') ?? '',
   });
+}
+
+/** Build the Prisma data payload shared by create and update. */
+function toData(d: ReturnType<typeof debtSchema.parse>) {
+  return {
+    name: d.name,
+    debtType: d.debtType ?? null,
+    lender: d.lender ?? null,
+    principal: d.principal,
+    balance: d.balance ?? null,
+    annualRate: d.annualRate,
+    minPayment: d.minPayment ?? null,
+    dueDay: d.dueDay ?? null,
+    termMonths: d.termMonths,
+    startDate: new Date(d.startDate),
+    endDate: d.endDate ? new Date(d.endDate) : null,
+    note: d.note ? d.note : null,
+  };
 }
 
 export async function createDebt(
@@ -33,18 +57,8 @@ export async function createDebt(
   const parsed = parse(formData);
   if (!parsed.success) return { fieldErrors: fieldErrorsFrom(parsed.error) };
 
-  const { name, principal, annualRate, termMonths, startDate, note } =
-    parsed.data;
   await prisma.debt.create({
-    data: {
-      userId,
-      name,
-      principal,
-      annualRate,
-      termMonths,
-      startDate: new Date(startDate),
-      note: note ? note : null,
-    },
+    data: { userId, ...toData(parsed.data) },
   });
   revalidatePath('/debts');
   return { success: true };
@@ -69,18 +83,9 @@ export async function updateDebt(
   const parsed = parse(formData);
   if (!parsed.success) return { fieldErrors: fieldErrorsFrom(parsed.error) };
 
-  const { name, principal, annualRate, termMonths, startDate, note } =
-    parsed.data;
   await prisma.debt.update({
     where: { id },
-    data: {
-      name,
-      principal,
-      annualRate,
-      termMonths,
-      startDate: new Date(startDate),
-      note: note ? note : null,
-    },
+    data: toData(parsed.data),
   });
   revalidatePath('/debts');
   revalidatePath(`/debts/${id}`);
