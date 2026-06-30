@@ -35,6 +35,20 @@ model User {
   assets       Asset[]
   budgets      Budget[]
   savingGoals  SavingGoal[]
+  pushSubscriptions PushSubscription[]
+}
+
+model PushSubscription {
+  id        String   @id @default(cuid())
+  userId    String
+  endpoint  String   @unique
+  p256dh    String // client public key
+  auth      String // client auth secret
+  createdAt DateTime @default(now())
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
 }
 
 enum TxType {
