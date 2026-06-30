@@ -5,6 +5,7 @@ import { AppShell } from '@/components/layout/app-shell';
 import { ThemeSwitcher } from '@/components/theme/theme-switcher';
 import { ChangePasswordForm } from '@/components/auth/change-password-form';
 import { ProfileHeader } from '@/components/profile/profile-header';
+import { NotificationToggle } from '@/components/push/notification-toggle';
 import { getSession } from '@/lib/session';
 import { prisma } from '@/lib/prisma';
 import { signOutAction } from '@/server/actions/auth';
@@ -61,6 +62,15 @@ export default async function ProfilePage() {
             </div>
             <ThemeSwitcher initialTheme={theme} isLoggedIn />
           </div>
+        </section>
+
+        {/* Notifications */}
+        <section className="rounded-lg border border-border bg-card p-6">
+          <h2 className="text-lg font-semibold">การแจ้งเตือน</h2>
+          <p className="mb-4 mt-1 text-sm text-muted-foreground">
+            รับการแจ้งเตือนชำระหนี้เมื่อใกล้ถึงวันครบกำหนด แม้ปิดแอปอยู่
+          </p>
+          <NotificationToggle />
         </section>
 
         {/* Password */}
