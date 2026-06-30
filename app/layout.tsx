@@ -17,13 +17,13 @@ const inter = Inter({
 });
 
 export const metadata: Metadata = {
-  title: 'MoneyPad — บันทึกรายรับรายจ่าย',
+  title: 'MoneyTracker — บันทึกรายรับรายจ่าย',
   description: 'แอปบันทึกรายรับ-รายจ่ายส่วนบุคคล',
   manifest: '/manifest.webmanifest',
   appleWebApp: {
     capable: true,
     statusBarStyle: 'default',
-    title: 'MoneyPad',
+    title: 'MoneyTracker',
   },
   icons: {
     icon: '/icon-192.png',

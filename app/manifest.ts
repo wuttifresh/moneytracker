@@ -2,8 +2,8 @@ import type { MetadataRoute } from 'next';
 
 export default function manifest(): MetadataRoute.Manifest {
   return {
-    name: 'MoneyPad — บันทึกรายรับรายจ่าย',
-    short_name: 'MoneyPad',
+    name: 'MoneyTracker — บันทึกรายรับรายจ่าย',
+    short_name: 'MoneyTracker',
     description:
       'แอปบันทึกรายรับ-รายจ่าย หนี้สิน การลงทุน ทรัพย์สิน และวางแผนการเงินส่วนบุคคล',
     lang: 'th',

@@ -1,7 +1,7 @@
-// MoneyPad service worker — minimal offline support.
+// MoneyTracker service worker — minimal offline support.
 // Network-first for navigations (fresh data when online, cached shell offline);
 // cache-first for build assets. API/auth responses are never cached.
-const CACHE = 'moneypad-v1';
+const CACHE = 'moneytracker-v1';
 
 self.addEventListener('install', () => {
   self.skipWaiting();

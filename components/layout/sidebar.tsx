@@ -19,7 +19,7 @@ export function Sidebar({ user }: { user: SidebarUser | null | false }) {
         <span className="flex h-9 w-9 items-center justify-center rounded-lg bg-primary text-primary-foreground">
           <Wallet className="h-5 w-5" />
         </span>
-        <span className="text-lg font-semibold">MoneyPad</span>
+        <span className="text-lg font-semibold">MoneyTracker</span>
       </div>
 
       <nav className="flex-1 space-y-1 px-3 py-2">

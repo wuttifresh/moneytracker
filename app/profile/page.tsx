@@ -10,7 +10,7 @@ import { signOutAction } from '@/server/actions/auth';
 import { getActiveTheme } from '@/lib/theme';
 import { THEMES } from '@/lib/themes';
 
-export const metadata: Metadata = { title: 'โปรไฟล์ — MoneyPad' };
+export const metadata: Metadata = { title: 'โปรไฟล์ — MoneyTracker' };
 
 const dateFmt = new Intl.DateTimeFormat('th-TH', { dateStyle: 'long' });
 
