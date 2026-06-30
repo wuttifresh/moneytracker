@@ -93,10 +93,16 @@ CREATE TABLE IF NOT EXISTS "Debt" (
     "id" TEXT NOT NULL,
     "userId" TEXT NOT NULL,
     "name" TEXT NOT NULL,
+    "debtType" TEXT,
+    "lender" TEXT,
     "principal" DECIMAL(14,2) NOT NULL,
+    "balance" DECIMAL(14,2),
     "annualRate" DECIMAL(6,3) NOT NULL,
+    "minPayment" DECIMAL(14,2),
+    "dueDay" INTEGER,
     "termMonths" INTEGER NOT NULL,
     "startDate" TIMESTAMP(3) NOT NULL,
+    "endDate" TIMESTAMP(3),
     "note" TEXT,
     "createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
     "updatedAt" TIMESTAMP(3) NOT NULL,
@@ -104,6 +110,14 @@ CREATE TABLE IF NOT EXISTS "Debt" (
 
     CONSTRAINT "Debt_pkey" PRIMARY KEY ("id")
 );
+
+-- AlterTable: ensure extended debt columns exist on pre-existing "Debt" tables
+ALTER TABLE "Debt" ADD COLUMN IF NOT EXISTS "debtType" TEXT;
+ALTER TABLE "Debt" ADD COLUMN IF NOT EXISTS "lender" TEXT;
+ALTER TABLE "Debt" ADD COLUMN IF NOT EXISTS "balance" DECIMAL(14,2);
+ALTER TABLE "Debt" ADD COLUMN IF NOT EXISTS "minPayment" DECIMAL(14,2);
+ALTER TABLE "Debt" ADD COLUMN IF NOT EXISTS "dueDay" INTEGER;
+ALTER TABLE "Debt" ADD COLUMN IF NOT EXISTS "endDate" TIMESTAMP(3);
 
 -- CreateTable
 CREATE TABLE IF NOT EXISTS "DebtPayment" (

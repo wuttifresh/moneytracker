@@ -5,8 +5,14 @@ import { useFormState } from 'react-dom';
 import { useRouter } from 'next/navigation';
 import { Plus, Pencil } from 'lucide-react';
 import { Modal } from '@/components/ui/modal';
-import { Field, FormError, SubmitButton } from '@/components/auth/form-controls';
+import {
+  Field,
+  SelectField,
+  FormError,
+  SubmitButton,
+} from '@/components/auth/form-controls';
 import { createDebt, updateDebt } from '@/server/actions/debts';
+import { DEBT_TYPES } from '@/lib/validations/debt';
 import type { DebtDTO } from '@/server/services/debts';
 import type { ActionState } from '@/lib/forms';
 
@@ -35,40 +41,105 @@ function DebtForm({ debt, onDone }: { debt?: DebtDTO; onDone: () => void }) {
     <form action={formAction} className="space-y-4">
       {debt && <input type="hidden" name="id" value={debt.id} />}
       <FormError message={state?.formError} />
+
       <Field
-        label="ชื่อหนี้ / เจ้าหนี้"
+        label="ชื่อหนี้"
         name="name"
+        placeholder="ชื่อหนี้ เช่น สินเชื่อรถ"
         defaultValue={debt?.name}
         errors={state?.fieldErrors?.name}
       />
-      <Field
-        label="ยอดเงินต้น (บาท)"
-        name="principal"
-        defaultValue={debt?.principal}
-        errors={state?.fieldErrors?.principal}
+      <SelectField
+        label="ประเภทหนี้"
+        name="debtType"
+        options={DEBT_TYPES}
+        defaultValue={debt?.debtType ?? DEBT_TYPES[0]}
+        errors={state?.fieldErrors?.debtType}
       />
+      <Field
+        label="ผู้ให้กู้/ธนาคาร"
+        name="lender"
+        placeholder="ผู้ให้กู้/ธนาคาร"
+        defaultValue={debt?.lender ?? ''}
+        errors={state?.fieldErrors?.lender}
+      />
+
+      <div className="grid grid-cols-2 gap-3">
+        <Field
+          label="ยอดเริ่มต้น"
+          name="principal"
+          inputMode="decimal"
+          placeholder="ยอดเริ่มต้น"
+          defaultValue={debt?.principal}
+          errors={state?.fieldErrors?.principal}
+        />
+        <Field
+          label="ยอดคงเหลือ"
+          name="balance"
+          inputMode="decimal"
+          placeholder="ยอดคงเหลือ"
+          defaultValue={debt?.balance ?? ''}
+          errors={state?.fieldErrors?.balance}
+        />
+      </div>
+
       <div className="grid grid-cols-2 gap-3">
         <Field
           label="ดอกเบี้ย (%/ปี)"
           name="annualRate"
+          inputMode="decimal"
+          placeholder="ดอกเบี้ย (%/ปี)"
           defaultValue={debt?.annualRate}
           errors={state?.fieldErrors?.annualRate}
         />
         <Field
-          label="จำนวนงวด (เดือน)"
+          label="ยอดชำระขั้นต่ำ/เดือน"
+          name="minPayment"
+          inputMode="decimal"
+          placeholder="ยอดชำระขั้นต่ำ/เดือน"
+          defaultValue={debt?.minPayment ?? ''}
+          errors={state?.fieldErrors?.minPayment}
+        />
+      </div>
+
+      <div className="grid grid-cols-2 gap-3">
+        <Field
+          label="วันครบกำหนด (1-31)"
+          name="dueDay"
+          type="number"
+          inputMode="numeric"
+          placeholder="วันครบกำหนด (1-31)"
+          defaultValue={debt?.dueDay != null ? String(debt.dueDay) : ''}
+          errors={state?.fieldErrors?.dueDay}
+        />
+        <Field
+          label="จำนวนงวดทั้งหมด"
           name="termMonths"
           type="number"
+          inputMode="numeric"
+          placeholder="จำนวนงวดทั้งหมด"
           defaultValue={debt ? String(debt.termMonths) : ''}
           errors={state?.fieldErrors?.termMonths}
         />
       </div>
-      <Field
-        label="วันเริ่มผ่อน"
-        name="startDate"
-        type="date"
-        defaultValue={debt ? debt.startDate.slice(0, 10) : todayISO()}
-        errors={state?.fieldErrors?.startDate}
-      />
+
+      <div className="grid grid-cols-2 gap-3">
+        <Field
+          label="วันเริ่มต้นสัญญา"
+          name="startDate"
+          type="date"
+          defaultValue={debt ? debt.startDate.slice(0, 10) : todayISO()}
+          errors={state?.fieldErrors?.startDate}
+        />
+        <Field
+          label="วันสิ้นสุดสัญญา"
+          name="endDate"
+          type="date"
+          defaultValue={debt?.endDate ? debt.endDate.slice(0, 10) : ''}
+          errors={state?.fieldErrors?.endDate}
+        />
+      </div>
+
       <Field
         label="หมายเหตุ (ไม่บังคับ)"
         name="note"
@@ -76,7 +147,7 @@ function DebtForm({ debt, onDone }: { debt?: DebtDTO; onDone: () => void }) {
         errors={state?.fieldErrors?.note}
       />
       <SubmitButton pendingText="กำลังบันทึก...">
-        {debt ? 'บันทึกการแก้ไข' : 'เพิ่มหนี้'}
+        {debt ? 'บันทึกการแก้ไข' : 'บันทึก'}
       </SubmitButton>
     </form>
   );

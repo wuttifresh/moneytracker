@@ -9,6 +9,8 @@ export function Field({
   errors,
   autoComplete,
   defaultValue,
+  placeholder,
+  inputMode,
 }: {
   label: string;
   name: string;
@@ -16,6 +18,8 @@ export function Field({
   errors?: string[];
   autoComplete?: string;
   defaultValue?: string;
+  placeholder?: string;
+  inputMode?: 'numeric' | 'decimal' | 'text';
 }) {
   return (
     <div className="space-y-1.5">
@@ -28,9 +32,51 @@ export function Field({
         type={type}
         autoComplete={autoComplete}
         defaultValue={defaultValue}
+        placeholder={placeholder}
+        inputMode={inputMode}
         aria-invalid={errors && errors.length > 0}
         className="w-full rounded-md border border-border bg-background px-3 py-2 text-sm outline-none transition focus:ring-2 focus:ring-ring"
       />
+      {errors?.map((err) => (
+        <p key={err} className="text-xs text-expense">
+          {err}
+        </p>
+      ))}
+    </div>
+  );
+}
+
+export function SelectField({
+  label,
+  name,
+  options,
+  errors,
+  defaultValue,
+}: {
+  label: string;
+  name: string;
+  options: readonly string[];
+  errors?: string[];
+  defaultValue?: string;
+}) {
+  return (
+    <div className="space-y-1.5">
+      <label htmlFor={name} className="text-sm font-medium">
+        {label}
+      </label>
+      <select
+        id={name}
+        name={name}
+        defaultValue={defaultValue}
+        aria-invalid={errors && errors.length > 0}
+        className="w-full rounded-md border border-border bg-background px-3 py-2 text-sm outline-none transition focus:ring-2 focus:ring-ring"
+      >
+        {options.map((opt) => (
+          <option key={opt} value={opt}>
+            {opt}
+          </option>
+        ))}
+      </select>
       {errors?.map((err) => (
         <p key={err} className="text-xs text-expense">
           {err}

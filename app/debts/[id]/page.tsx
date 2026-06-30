@@ -27,17 +27,30 @@ export default async function DebtDetailPage({
     debt.termMonths,
   );
 
+  const dateFmt = new Intl.DateTimeFormat('th-TH', { dateStyle: 'medium' });
   const summary = [
-    { label: 'ยอดเงินต้น', value: formatTHB(debt.principal) },
+    { label: 'ยอดเริ่มต้น', value: formatTHB(debt.principal) },
+    debt.balance != null
+      ? { label: 'ยอดคงเหลือ', value: formatTHB(debt.balance) }
+      : null,
     { label: 'ดอกเบี้ย', value: `${debt.annualRate}%/ปี` },
     { label: 'ผ่อน/เดือน', value: formatTHB(schedule.monthly) },
+    debt.minPayment != null
+      ? { label: 'ชำระขั้นต่ำ/เดือน', value: formatTHB(debt.minPayment) }
+      : null,
+    debt.dueDay != null
+      ? { label: 'วันครบกำหนด', value: `ทุกวันที่ ${debt.dueDay}` }
+      : null,
     { label: 'ดอกเบี้ยรวม', value: formatTHB(schedule.totalInterest) },
     { label: 'ยอดจ่ายทั้งหมด', value: formatTHB(schedule.totalPayment) },
     {
       label: 'จ่ายแล้ว',
       value: `${debt.paidInstallments.length}/${debt.termMonths} งวด`,
     },
-  ];
+    debt.endDate != null
+      ? { label: 'สิ้นสุดสัญญา', value: dateFmt.format(new Date(debt.endDate)) }
+      : null,
+  ].filter((x): x is { label: string; value: string } => x !== null);
 
   return (
     <AppShell title={debt.name}>
@@ -53,6 +66,11 @@ export default async function DebtDetailPage({
         <div className="flex items-start justify-between gap-3">
           <div>
             <h2 className="text-xl font-semibold">{debt.name}</h2>
+            {(debt.debtType || debt.lender) && (
+              <p className="mt-0.5 text-sm text-muted-foreground">
+                {[debt.debtType, debt.lender].filter(Boolean).join(' · ')}
+              </p>
+            )}
             {debt.note && (
               <p className="mt-0.5 text-sm text-muted-foreground">{debt.note}</p>
             )}
