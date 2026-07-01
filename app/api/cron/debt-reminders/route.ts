@@ -13,9 +13,11 @@ function authorized(req: Request): boolean {
 }
 
 /**
- * Runs hourly. For each subscribed user whose chosen local hour matches now,
- * sends a push for debts whose due date is within the user's chosen lead days.
- * Each user's "today" is computed in their own timezone offset.
+ * Runs once daily (Vercel Hobby plan only allows daily cron schedules).
+ * Sends a push to every subscribed user for debts whose due date is within
+ * their chosen lead days. Each user's "today" is computed in their own
+ * timezone offset. `debtReminderHour` no longer gates delivery since a single
+ * daily run can't target each user's chosen hour precisely.
  */
 export async function GET(req: Request): Promise<Response> {
   if (!authorized(req)) return new Response('Unauthorized', { status: 401 });
@@ -28,7 +30,6 @@ export async function GET(req: Request): Promise<Response> {
     select: {
       id: true,
       debtReminderLeadDays: true,
-      debtReminderHour: true,
       reminderTzOffset: true,
     },
   });
@@ -39,7 +40,6 @@ export async function GET(req: Request): Promise<Response> {
 
   for (const u of users) {
     const local = new Date(nowMs + u.reminderTzOffset * 60_000);
-    if (local.getUTCHours() !== u.debtReminderHour) continue; // not their hour
 
     const offsets = new Set(u.debtReminderLeadDays);
     if (offsets.size === 0) continue;
