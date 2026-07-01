@@ -41,6 +41,8 @@ model User {
   budgets      Budget[]
   savingGoals  SavingGoal[]
   pushSubscriptions PushSubscription[]
+  bills        Bill[]
+  billPayments BillPayment[]
 }
 
 model PushSubscription {
@@ -225,6 +227,42 @@ model Budget {
   category Category @relation(fields: [categoryId], references: [id], onDelete: Cascade)
 
   @@unique([userId, categoryId])
+  @@index([userId])
+}
+
+model Bill {
+  id        String    @id @default(cuid())
+  userId    String
+  name      String
+  billType  String? // ประเภทบิล เช่น สาธารณูปโภค, ที่พัก, สมาชิกรายเดือน
+  amount    Decimal   @db.Decimal(14, 2) // ยอดที่ต้องจ่ายต่อเดือน
+  dueDay    Int // วันครบกำหนดของเดือน (1-31)
+  isActive  Boolean   @default(true)
+  note      String?
+  createdAt DateTime  @default(now())
+  updatedAt DateTime  @updatedAt
+  deletedAt DateTime?
+
+  user     User          @relation(fields: [userId], references: [id], onDelete: Cascade)
+  payments BillPayment[]
+
+  @@index([userId])
+}
+
+model BillPayment {
+  id        String   @id @default(cuid())
+  userId    String
+  billId    String
+  year      Int
+  month     Int // 1-12, เดือนที่จ่ายบิลนี้
+  amount    Decimal  @db.Decimal(14, 2)
+  paidAt    DateTime @default(now())
+  createdAt DateTime @default(now())
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+  bill Bill @relation(fields: [billId], references: [id], onDelete: Cascade)
+
+  @@unique([billId, year, month])
   @@index([userId])
 }
 
