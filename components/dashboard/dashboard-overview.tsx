@@ -130,6 +130,45 @@ export function DashboardOverview({ data }: { data: FinancialOverview }) {
   const healthColor = toneColor(data.health.tone);
   const maxIncome = Math.max(1, ...data.monthlyIncome.map((m) => m.value));
 
+  const upcomingPanel = (
+    <>
+      <p className="mb-3 flex items-center gap-2 font-semibold">
+        <CalendarClock className="h-4 w-4 text-amber-500" />
+        การชำระที่ใกล้ถึง
+      </p>
+      {data.upcoming.length > 0 ? (
+        <ul className="space-y-2">
+          {data.upcoming.map((u) => (
+            <li
+              key={u.id}
+              className="flex items-center justify-between gap-2 rounded-lg border border-border bg-background/40 px-3 py-2.5 text-sm"
+            >
+              <span className="min-w-0 flex-1 truncate">{u.name}</span>
+              {u.amount != null && (
+                <span className="tabular-nums text-muted-foreground">
+                  {money(u.amount)}
+                </span>
+              )}
+              <span className="shrink-0 font-medium text-amber-600 dark:text-amber-400">
+                {dueRelativeText(u.daysUntil)}
+              </span>
+            </li>
+          ))}
+        </ul>
+      ) : (
+        <div className="flex flex-col items-center justify-center py-6 text-center lg:h-[220px] lg:py-0">
+          <span className="mb-3 flex h-12 w-12 items-center justify-center rounded-xl bg-income/10 text-income">
+            <CheckCircle2 className="h-6 w-6" />
+          </span>
+          <p className="text-sm font-medium">ไม่มีการชำระที่ใกล้ถึง</p>
+          <p className="mt-0.5 text-xs text-muted-foreground">
+            ไม่มีหนี้ที่ต้องจ่ายเร็ว ๆ นี้
+          </p>
+        </div>
+      )}
+    </>
+  );
+
   return (
     <div className="space-y-5">
       {/* Header */}
@@ -181,6 +220,13 @@ export function DashboardOverview({ data }: { data: FinancialOverview }) {
             </Link>
           </div>
         </div>
+      </section>
+
+      {/* Upcoming payments — shown right away on mobile so it isn't buried
+          below the stat cards; the desktop layout pairs it with the income
+          chart further down instead. */}
+      <section className="rounded-xl border border-border bg-card p-5 lg:hidden">
+        {upcomingPanel}
       </section>
 
       {/* Stat cards */}
@@ -326,42 +372,9 @@ export function DashboardOverview({ data }: { data: FinancialOverview }) {
           )}
         </div>
 
-        {/* Upcoming payments */}
-        <div className="rounded-xl border border-border bg-card p-5">
-          <p className="mb-3 flex items-center gap-2 font-semibold">
-            <CalendarClock className="h-4 w-4 text-amber-500" />
-            การชำระที่ใกล้ถึง
-          </p>
-          {data.upcoming.length > 0 ? (
-            <ul className="space-y-2">
-              {data.upcoming.map((u) => (
-                <li
-                  key={u.id}
-                  className="flex items-center justify-between gap-2 rounded-lg border border-border bg-background/40 px-3 py-2.5 text-sm"
-                >
-                  <span className="min-w-0 flex-1 truncate">{u.name}</span>
-                  {u.amount != null && (
-                    <span className="tabular-nums text-muted-foreground">
-                      {money(u.amount)}
-                    </span>
-                  )}
-                  <span className="shrink-0 font-medium text-amber-600 dark:text-amber-400">
-                    {dueRelativeText(u.daysUntil)}
-                  </span>
-                </li>
-              ))}
-            </ul>
-          ) : (
-            <div className="flex h-[220px] flex-col items-center justify-center text-center">
-              <span className="mb-3 flex h-12 w-12 items-center justify-center rounded-xl bg-income/10 text-income">
-                <CheckCircle2 className="h-6 w-6" />
-              </span>
-              <p className="text-sm font-medium">ไม่มีการชำระที่ใกล้ถึง</p>
-              <p className="mt-0.5 text-xs text-muted-foreground">
-                ไม่มีหนี้ที่ต้องจ่ายเร็ว ๆ นี้
-              </p>
-            </div>
-          )}
+        {/* Upcoming payments (desktop position — mobile shows this near the top instead) */}
+        <div className="hidden rounded-xl border border-border bg-card p-5 lg:block">
+          {upcomingPanel}
         </div>
       </section>
     </div>
