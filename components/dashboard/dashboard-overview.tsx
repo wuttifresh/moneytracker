@@ -27,6 +27,7 @@ import {
 } from 'lucide-react';
 import { formatTHB } from '@/lib/money';
 import { dueRelativeText } from '@/lib/debt-due';
+import { DebtModal } from '@/components/debts/debt-modal';
 import type { FinancialOverview } from '@/server/services/overview';
 
 const MASK = '฿ ••••••';
@@ -132,10 +133,13 @@ export function DashboardOverview({ data }: { data: FinancialOverview }) {
 
   const upcomingPanel = (
     <>
-      <p className="mb-3 flex items-center gap-2 font-semibold">
-        <CalendarClock className="h-4 w-4 text-amber-500" />
-        การชำระที่ใกล้ถึง
-      </p>
+      <div className="mb-3 flex items-center justify-between gap-2">
+        <p className="flex items-center gap-2 font-semibold">
+          <CalendarClock className="h-4 w-4 text-amber-500" />
+          การชำระที่ใกล้ถึง
+        </p>
+        <DebtModal variant="icon" />
+      </div>
       {data.upcoming.length > 0 ? (
         <ul className="space-y-2">
           {data.upcoming.map((u) => (
