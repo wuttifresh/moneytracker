@@ -153,7 +153,14 @@ function DebtForm({ debt, onDone }: { debt?: DebtDTO; onDone: () => void }) {
   );
 }
 
-export function DebtModal({ debt }: { debt?: DebtDTO }) {
+export function DebtModal({
+  debt,
+  variant = 'button',
+}: {
+  debt?: DebtDTO;
+  /** 'icon' renders a compact square trigger for embedding in card headers. */
+  variant?: 'button' | 'icon';
+}) {
   const [open, setOpen] = useState(false);
   return (
     <>
@@ -165,6 +172,15 @@ export function DebtModal({ debt }: { debt?: DebtDTO }) {
           className="flex h-9 w-9 items-center justify-center rounded-md text-muted-foreground transition-colors hover:bg-secondary"
         >
           <Pencil className="h-4 w-4" />
+        </button>
+      ) : variant === 'icon' ? (
+        <button
+          type="button"
+          onClick={() => setOpen(true)}
+          aria-label="เพิ่มหนี้"
+          className="flex h-8 w-8 items-center justify-center rounded-lg bg-secondary text-primary transition-colors hover:bg-secondary/70"
+        >
+          <Plus className="h-4 w-4" />
         </button>
       ) : (
         <button
