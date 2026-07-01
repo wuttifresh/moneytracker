@@ -7,6 +7,7 @@ import {
   Boxes,
   BarChart3,
   Target,
+  Receipt,
   type LucideIcon,
 } from 'lucide-react';
 
@@ -21,8 +22,14 @@ export type NavItem = {
 // Routes are placeholders for Phase 0 — pages arrive in later phases.
 export const NAV_ITEMS: NavItem[] = [
   { href: '/', label: 'ภาพรวม', icon: LayoutDashboard, primary: true },
-  { href: '/transactions', label: 'รายรับ-รายจ่าย', icon: ArrowLeftRight, primary: true },
+  {
+    href: '/transactions',
+    label: 'รายรับ-รายจ่าย',
+    icon: ArrowLeftRight,
+    primary: true,
+  },
   { href: '/debts', label: 'หนี้สิน', icon: Landmark },
+  { href: '/bills', label: 'บิล', icon: Receipt },
   { href: '/investments', label: 'การลงทุน', icon: TrendingUp, primary: true },
   { href: '/assets', label: 'ทรัพย์สิน', icon: Boxes },
   { href: '/reports', label: 'รายงาน', icon: BarChart3, primary: true },
