@@ -33,8 +33,9 @@ type DebtDueRow = {
   name: string;
   dueDay: number | null;
   minPayment: { toString(): string } | null;
-  termMonths: number;
+  termMonths: number | null;
   _count: { payments: number };
+  statements: { minPayment: { toString(): string } }[];
 };
 
 /**
@@ -60,51 +61,60 @@ export async function getDashboardView(
     budgets,
     debtsDue,
   ] = await Promise.all([
-      prisma.transaction.aggregate({
-        _sum: { amount: true },
-        where: { ...baseWhere, type: 'income' },
-      }),
-      prisma.transaction.aggregate({
-        _sum: { amount: true },
-        where: { ...baseWhere, type: 'expense' },
-      }),
-      prisma.transaction.groupBy({
-        by: ['categoryId'],
-        where: { ...baseWhere, type: 'expense' },
-        _sum: { amount: true },
-      }),
-      prisma.transaction.findMany({
-        where: baseWhere,
-        orderBy: [{ date: 'desc' }, { createdAt: 'desc' }],
-        take: 5,
-        include: {
-          category: { select: { id: true, name: true, icon: true, color: true } },
-        },
-      }),
-      prisma.category.findMany({
-        where: { userId, deletedAt: null },
-        orderBy: [{ type: 'asc' }, { createdAt: 'asc' }],
-        select: { id: true, name: true, type: true, icon: true, color: true },
-      }),
-      // Resilient: if the Budget table hasn't been migrated yet, treat as none.
-      prisma.budget
-        .findMany({ where: { userId } })
-        .catch(() => [] as { categoryId: string; amount: { toNumber(): number } }[]),
-      // Resilient: dueDay/minPayment are recent columns — tolerate pre-migration.
-      prisma.debt
-        .findMany({
-          where: { userId, deletedAt: null, dueDay: { not: null } },
-          select: {
-            id: true,
-            name: true,
-            dueDay: true,
-            minPayment: true,
-            termMonths: true,
-            _count: { select: { payments: true } },
+    prisma.transaction.aggregate({
+      _sum: { amount: true },
+      where: { ...baseWhere, type: 'income' },
+    }),
+    prisma.transaction.aggregate({
+      _sum: { amount: true },
+      where: { ...baseWhere, type: 'expense' },
+    }),
+    prisma.transaction.groupBy({
+      by: ['categoryId'],
+      where: { ...baseWhere, type: 'expense' },
+      _sum: { amount: true },
+    }),
+    prisma.transaction.findMany({
+      where: baseWhere,
+      orderBy: [{ date: 'desc' }, { createdAt: 'desc' }],
+      take: 5,
+      include: {
+        category: { select: { id: true, name: true, icon: true, color: true } },
+      },
+    }),
+    prisma.category.findMany({
+      where: { userId, deletedAt: null },
+      orderBy: [{ type: 'asc' }, { createdAt: 'asc' }],
+      select: { id: true, name: true, type: true, icon: true, color: true },
+    }),
+    // Resilient: if the Budget table hasn't been migrated yet, treat as none.
+    prisma.budget
+      .findMany({ where: { userId } })
+      .catch(
+        () => [] as { categoryId: string; amount: { toNumber(): number } }[],
+      ),
+    // Resilient: dueDay/minPayment are recent columns — tolerate pre-migration.
+    prisma.debt
+      .findMany({
+        where: { userId, deletedAt: null, dueDay: { not: null } },
+        select: {
+          id: true,
+          name: true,
+          dueDay: true,
+          minPayment: true,
+          termMonths: true,
+          _count: { select: { payments: true } },
+          // Credit cards: prefer the latest statement's minPayment, since
+          // it changes month to month as new charges are drawn.
+          statements: {
+            orderBy: { statementMonth: 'desc' },
+            take: 1,
+            select: { minPayment: true },
           },
-        })
-        .catch(() => [] as DebtDueRow[]),
-    ]);
+        },
+      })
+      .catch(() => [] as DebtDueRow[]),
+  ]);
 
   // First-ever load: seed default categories, then use them (rare path).
   let categories = categoriesRaw;
@@ -144,15 +154,20 @@ export async function getDashboardView(
 
   // Debts approaching their monthly due day (skip fully-paid debts).
   const upcomingDues: UpcomingDue[] = debtsDue
-    .filter((d) => d.dueDay != null && d._count.payments < d.termMonths)
+    .filter(
+      (d) =>
+        d.dueDay != null &&
+        (d.termMonths == null || d._count.payments < d.termMonths),
+    )
     .map((d) => {
       const due = nextDueDate(d.dueDay as number, now);
+      const latestMinPayment = d.statements[0]?.minPayment ?? d.minPayment;
       return {
         id: d.id,
         name: d.name,
         dueDate: due.toISOString(),
         daysUntil: daysUntil(due, now),
-        minPayment: d.minPayment ? d.minPayment.toString() : null,
+        minPayment: latestMinPayment ? latestMinPayment.toString() : null,
       };
     })
     .filter((d) => d.daysUntil <= DUE_SOON_DAYS)

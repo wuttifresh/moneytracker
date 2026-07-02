@@ -22,7 +22,10 @@ function authorized(req: Request): boolean {
 export async function GET(req: Request): Promise<Response> {
   if (!authorized(req)) return new Response('Unauthorized', { status: 401 });
   if (!isPushConfigured()) {
-    return Response.json({ ok: false, error: 'push not configured' }, { status: 503 });
+    return Response.json(
+      { ok: false, error: 'push not configured' },
+      { status: 503 },
+    );
   }
 
   const users = await prisma.user.findMany({
@@ -60,7 +63,11 @@ export async function GET(req: Request): Promise<Response> {
     });
 
     const due = debts
-      .filter((d) => d.dueDay != null && d._count.payments < d.termMonths)
+      .filter(
+        (d) =>
+          d.dueDay != null &&
+          (d.termMonths == null || d._count.payments < d.termMonths),
+      )
       .map((d) => ({
         name: d.name,
         days: daysUntilDueDay(d.dueDay as number, ly, lm, ld),

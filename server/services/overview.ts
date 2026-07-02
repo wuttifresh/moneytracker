@@ -52,8 +52,8 @@ export async function getFinancialOverview(
   const year = now.getFullYear();
   const month = now.getMonth(); // 0-based
 
-  const [portfolio, assetSummary, savingsAgg, report, debts] = await Promise.all(
-    [
+  const [portfolio, assetSummary, savingsAgg, report, debts] =
+    await Promise.all([
       getPortfolio(userId),
       listAssets(userId),
       prisma.savingGoal.aggregate({
@@ -72,10 +72,17 @@ export async function getFinancialOverview(
           dueDay: true,
           termMonths: true,
           _count: { select: { payments: true } },
+          // Credit cards: the latest statement is the accurate current
+          // balance/minimum, since both change month to month as new
+          // charges are drawn — a static balance field goes stale fast.
+          statements: {
+            orderBy: { statementMonth: 'desc' },
+            take: 1,
+            select: { fullBalance: true, minPayment: true },
+          },
         },
       }),
-    ],
-  );
+    ]);
 
   // Split investments into stock-like vs fund-like (Decimal-safe).
   let stocks = D(0);
@@ -88,10 +95,13 @@ export async function getFinancialOverview(
   const savings = savingsAgg._sum.currentAmount ?? D(0);
   const assetsValue = D(assetSummary.totalCurrent);
 
-  // Outstanding debt: prefer the entered balance, else the principal.
+  // Outstanding debt: prefer the latest statement (credit cards), else the
+  // entered balance, else the principal.
   let debtRemaining = D(0);
   for (const d of debts) {
-    debtRemaining = debtRemaining.plus(d.balance ?? d.principal);
+    debtRemaining = debtRemaining.plus(
+      d.statements[0]?.fullBalance ?? d.balance ?? d.principal,
+    );
   }
 
   const totalAssets = savings.plus(stocks).plus(funds).plus(assetsValue);
@@ -106,15 +116,20 @@ export async function getFinancialOverview(
 
   // Upcoming debt payments within the reminder window (not fully paid).
   const upcoming: UpcomingPayment[] = debts
-    .filter((d) => d.dueDay != null && d._count.payments < d.termMonths)
+    .filter(
+      (d) =>
+        d.dueDay != null &&
+        (d.termMonths == null || d._count.payments < d.termMonths),
+    )
     .map((d) => {
       const due = nextDueDate(d.dueDay as number, now);
+      const latestMinPayment = d.statements[0]?.minPayment ?? d.minPayment;
       return {
         id: d.id,
         name: d.name,
         dueDate: due.toISOString(),
         daysUntil: daysUntil(due, now),
-        amount: d.minPayment ? d.minPayment.toNumber() : null,
+        amount: latestMinPayment ? latestMinPayment.toNumber() : null,
       };
     })
     .filter((u) => u.daysUntil <= DUE_SOON_DAYS)
@@ -133,7 +148,11 @@ export async function getFinancialOverview(
 
   let health: FinancialOverview['health'];
   if (debtRemainingN <= 0) {
-    health = { title: 'ไม่มีหนี้สิน', desc: 'ยอดเยี่ยม! คุณปลอดหนี้', tone: 'good' };
+    health = {
+      title: 'ไม่มีหนี้สิน',
+      desc: 'ยอดเยี่ยม! คุณปลอดหนี้',
+      tone: 'good',
+    };
   } else if (debtRatio > 0.6) {
     health = {
       title: 'หนี้สินค่อนข้างสูง',

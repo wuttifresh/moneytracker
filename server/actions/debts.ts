@@ -37,10 +37,10 @@ function toData(d: ReturnType<typeof debtSchema.parse>) {
     lender: d.lender ?? null,
     principal: d.principal,
     balance: d.balance ?? null,
-    annualRate: d.annualRate,
+    annualRate: d.annualRate ?? null,
     minPayment: d.minPayment ?? null,
     dueDay: d.dueDay ?? null,
-    termMonths: d.termMonths,
+    termMonths: d.termMonths ?? null,
     startDate: new Date(d.startDate),
     endDate: d.endDate ? new Date(d.endDate) : null,
     note: d.note ? d.note : null,
@@ -120,6 +120,9 @@ export async function toggleInstallment(
     where: { id: debtId, userId, deletedAt: null },
   });
   if (!debt) return { formError: 'ไม่พบรายการหนี้นี้' };
+  if (debt.termMonths == null) {
+    return { formError: 'หนี้นี้ไม่มีจำนวนงวด จึงไม่มีตารางตัดชำระ' };
+  }
   if (installmentNo < 1 || installmentNo > debt.termMonths) {
     return { formError: 'งวดไม่ถูกต้อง' };
   }
@@ -134,7 +137,7 @@ export async function toggleInstallment(
   } else {
     const schedule = buildSchedule(
       Number(debt.principal),
-      Number(debt.annualRate),
+      Number(debt.annualRate ?? 0),
       debt.termMonths,
     );
     const row = schedule.rows.find((r) => r.no === installmentNo);

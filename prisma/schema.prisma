@@ -36,6 +36,7 @@ model User {
   transactions Transaction[]
   debts        Debt[]
   debtPayments DebtPayment[]
+  debtStatements DebtStatement[]
   investments  Investment[]
   assets       Asset[]
   budgets      Budget[]
@@ -145,10 +146,10 @@ model Debt {
   lender     String? // ผู้ให้กู้/ธนาคาร
   principal  Decimal   @db.Decimal(14, 2) // ยอดเริ่มต้น
   balance    Decimal?  @db.Decimal(14, 2) // ยอดคงเหลือ
-  annualRate Decimal   @db.Decimal(6, 3) // percent per year
+  annualRate Decimal?  @db.Decimal(6, 3) // percent per year — ไม่บังคับ (บางบิลไม่ระบุ)
   minPayment Decimal?  @db.Decimal(14, 2) // ยอดชำระขั้นต่ำ/เดือน
   dueDay     Int? // วันครบกำหนดของเดือน (1-31)
-  termMonths Int
+  termMonths Int? // จำนวนงวด — ไม่บังคับ (บัตรเครดิตไม่มีงวด)
   startDate  DateTime
   endDate    DateTime? // วันสิ้นสุดสัญญา
   note       String?
@@ -156,8 +157,9 @@ model Debt {
   updatedAt  DateTime  @updatedAt
   deletedAt  DateTime?
 
-  user     User          @relation(fields: [userId], references: [id], onDelete: Cascade)
-  payments DebtPayment[]
+  user       User            @relation(fields: [userId], references: [id], onDelete: Cascade)
+  payments   DebtPayment[]
+  statements DebtStatement[]
 
   @@index([userId])
 }
@@ -176,6 +178,30 @@ model DebtPayment {
 
   @@unique([debtId, installmentNo])
   @@index([userId])
+}
+
+// One statement/billing-cycle snapshot for a revolving-credit debt (credit
+// cards). Unlike DebtPayment (a fixed installment schedule), this is a
+// month-by-month ledger of what the statement actually said, since a card's
+// full balance and minimum payment change as new charges are drawn.
+model DebtStatement {
+  id             String    @id @default(cuid())
+  userId         String
+  debtId         String
+  statementMonth DateTime // เดือนของรอบบิล เก็บเป็นวันที่ 1 ของเดือนนั้น
+  fullBalance    Decimal   @db.Decimal(14, 2) // ยอดเต็มตามใบแจ้งหนี้
+  minPayment     Decimal   @db.Decimal(14, 2) // ยอดชำระขั้นต่ำของรอบนี้
+  dueDate        DateTime? // วันครบกำหนดชำระของรอบนี้
+  note           String?
+  createdAt      DateTime  @default(now())
+  updatedAt      DateTime  @updatedAt
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+  debt Debt @relation(fields: [debtId], references: [id], onDelete: Cascade)
+
+  @@unique([debtId, statementMonth])
+  @@index([userId])
+  @@index([debtId, statementMonth])
 }
 
 model Investment {

@@ -85,11 +85,11 @@ function DebtForm({ debt, onDone }: { debt?: DebtDTO; onDone: () => void }) {
 
       <div className="grid grid-cols-2 gap-3">
         <Field
-          label="ดอกเบี้ย (%/ปี)"
+          label="ดอกเบี้ย (%/ปี) (ไม่บังคับ)"
           name="annualRate"
           inputMode="decimal"
-          placeholder="ดอกเบี้ย (%/ปี)"
-          defaultValue={debt?.annualRate}
+          placeholder="ถ้าไม่ทราบเว้นว่างได้"
+          defaultValue={debt?.annualRate ?? ''}
           errors={state?.fieldErrors?.annualRate}
         />
         <Field
@@ -113,12 +113,12 @@ function DebtForm({ debt, onDone }: { debt?: DebtDTO; onDone: () => void }) {
           errors={state?.fieldErrors?.dueDay}
         />
         <Field
-          label="จำนวนงวดทั้งหมด"
+          label="จำนวนงวดทั้งหมด (ไม่บังคับ)"
           name="termMonths"
           type="number"
           inputMode="numeric"
-          placeholder="จำนวนงวดทั้งหมด"
-          defaultValue={debt ? String(debt.termMonths) : ''}
+          placeholder="บัตรเครดิตเว้นว่างได้"
+          defaultValue={debt?.termMonths != null ? String(debt.termMonths) : ''}
           errors={state?.fieldErrors?.termMonths}
         />
       </div>
@@ -178,7 +178,7 @@ export function DebtModal({
           type="button"
           onClick={() => setOpen(true)}
           aria-label="เพิ่มหนี้"
-          className="flex h-8 w-8 items-center justify-center rounded-lg bg-secondary text-primary transition-colors hover:bg-secondary/70"
+          className="hover:bg-secondary/70 flex h-8 w-8 items-center justify-center rounded-lg bg-secondary text-primary transition-colors"
         >
           <Plus className="h-4 w-4" />
         </button>
