@@ -4,7 +4,6 @@ import { revalidatePath } from 'next/cache';
 import { auth } from '@/auth';
 import { prisma } from '@/lib/prisma';
 import { debtSchema } from '@/lib/validations/debt';
-import { buildSchedule } from '@/lib/amortization';
 import { fieldErrorsFrom, type ActionState } from '@/lib/forms';
 
 async function requireUserId(): Promise<string | null> {
@@ -105,11 +104,47 @@ export async function deleteDebt(id: string): Promise<ActionState> {
   return { success: true };
 }
 
+const amountRegex = /^\d+(\.\d{1,2})?$/;
+
 /**
- * Toggle whether an installment is marked paid. The amount is recomputed
- * server-side from the debt's schedule (never trusted from the client).
+ * Record (or update) the actual amount paid for one installment. The amount
+ * is whatever the user typed for that month — it does not need to match the
+ * schedule's calculated payment.
  */
-export async function toggleInstallment(
+export async function recordInstallmentPayment(
+  debtId: string,
+  installmentNo: number,
+  amount: string,
+): Promise<ActionState> {
+  const userId = await requireUserId();
+  if (!userId) return { formError: 'ยังไม่ได้เข้าสู่ระบบ' };
+
+  if (!amountRegex.test(amount.trim()) || Number(amount) <= 0) {
+    return { formError: 'ยอดที่จ่ายไม่ถูกต้อง' };
+  }
+
+  const debt = await prisma.debt.findFirst({
+    where: { id: debtId, userId, deletedAt: null },
+    select: { termMonths: true },
+  });
+  if (!debt) return { formError: 'ไม่พบรายการหนี้นี้' };
+  if (installmentNo < 1 || installmentNo > debt.termMonths) {
+    return { formError: 'งวดไม่ถูกต้อง' };
+  }
+
+  await prisma.debtPayment.upsert({
+    where: { debtId_installmentNo: { debtId, installmentNo } },
+    create: { userId, debtId, installmentNo, amount },
+    update: { amount },
+  });
+
+  revalidatePath(`/debts/${debtId}`);
+  revalidatePath('/debts');
+  return { success: true };
+}
+
+/** Unmark an installment as paid, removing its recorded amount. */
+export async function removeInstallmentPayment(
   debtId: string,
   installmentNo: number,
 ): Promise<ActionState> {
@@ -118,35 +153,14 @@ export async function toggleInstallment(
 
   const debt = await prisma.debt.findFirst({
     where: { id: debtId, userId, deletedAt: null },
-  });
-  if (!debt) return { formError: 'ไม่พบรายการหนี้นี้' };
-  if (installmentNo < 1 || installmentNo > debt.termMonths) {
-    return { formError: 'งวดไม่ถูกต้อง' };
-  }
-
-  const existing = await prisma.debtPayment.findUnique({
-    where: { debtId_installmentNo: { debtId, installmentNo } },
     select: { id: true },
   });
+  if (!debt) return { formError: 'ไม่พบรายการหนี้นี้' };
 
-  if (existing) {
-    await prisma.debtPayment.delete({ where: { id: existing.id } });
-  } else {
-    const schedule = buildSchedule(
-      Number(debt.principal),
-      Number(debt.annualRate),
-      debt.termMonths,
-    );
-    const row = schedule.rows.find((r) => r.no === installmentNo);
-    await prisma.debtPayment.create({
-      data: {
-        userId,
-        debtId,
-        installmentNo,
-        amount: row ? row.payment.toFixed(2) : '0',
-      },
-    });
-  }
+  await prisma.debtPayment.deleteMany({
+    where: { debtId, installmentNo, userId },
+  });
+
   revalidatePath(`/debts/${debtId}`);
   revalidatePath('/debts');
   return { success: true };

@@ -17,7 +17,7 @@ export type DebtDTO = {
 };
 
 export type DebtWithProgress = DebtDTO & { paidCount: number };
-export type DebtDetail = DebtDTO & { paidInstallments: number[] };
+export type DebtDetail = DebtDTO & { payments: Record<number, string> };
 
 type Dec = { toString(): string };
 
@@ -70,11 +70,10 @@ export async function getDebt(
 ): Promise<DebtDetail | null> {
   const d = await prisma.debt.findFirst({
     where: { id, userId, deletedAt: null },
-    include: { payments: { select: { installmentNo: true } } },
+    include: { payments: { select: { installmentNo: true, amount: true } } },
   });
   if (!d) return null;
-  return {
-    ...toDTO(d),
-    paidInstallments: d.payments.map((p) => p.installmentNo),
-  };
+  const payments: Record<number, string> = {};
+  for (const p of d.payments) payments[p.installmentNo] = p.amount.toString();
+  return { ...toDTO(d), payments };
 }

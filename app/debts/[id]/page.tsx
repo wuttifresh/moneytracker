@@ -45,7 +45,7 @@ export default async function DebtDetailPage({
     { label: 'ยอดจ่ายทั้งหมด', value: formatTHB(schedule.totalPayment) },
     {
       label: 'จ่ายแล้ว',
-      value: `${debt.paidInstallments.length}/${debt.termMonths} งวด`,
+      value: `${Object.keys(debt.payments).length}/${debt.termMonths} งวด`,
     },
     debt.endDate != null
       ? { label: 'สิ้นสุดสัญญา', value: dateFmt.format(new Date(debt.endDate)) }
@@ -99,7 +99,7 @@ export default async function DebtDetailPage({
             debtId={debt.id}
             rows={schedule.rows}
             startDate={debt.startDate}
-            paidInstallments={debt.paidInstallments}
+            payments={debt.payments}
           />
         </section>
       </div>
